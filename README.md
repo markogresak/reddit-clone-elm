@@ -4,8 +4,18 @@
 
 Tested with node `v8.x.x`.
 
+Install build tool dependencies:
+
 ```
 $ yarn
+```
+
+[Follow instructions on Elm documentation to install Elm tools.](https://guide.elm-lang.org/install.html)
+
+Install Elm project dependencies:
+
+```
+$ elm-package install
 ```
 
 ## Running in dev mode
@@ -14,7 +24,7 @@ $ yarn
 $ yarn start
 ```
 
-Visit `http://localhost:3000/` from your browser of choice.
+Visit `http://localhost:8000/` from your browser of choice.
 Server is visible from the local network as well.
 
 ## Build (production)
@@ -29,17 +39,7 @@ $ yarn run build
 
 This command will start webpack dev server, but with `NODE_ENV` set to `production`.
 Everything will be minified and served.
-Hot reload will not work, so you need to refresh the page manually after changing the code.
 
 ```
 yarn run preview
-```
-
-## Linting
-
-For linting I'm using [eslint-config-airbnb](https://www.yarnjs.com/package/eslint-config-airbnb),
-but some options are overridden to my personal preferences.
-
-```
-$ yarn run lint
 ```
