@@ -7,12 +7,24 @@ import Msgs exposing (Msg)
 import Posts.Edit
 import Posts.List
 import RemoteData
+import Css.Normalize
+import Css.File exposing (compile)
+import Html.CssHelpers exposing (style)
+
+
+compiledCss : String
+compiledCss =
+    [ Css.Normalize.css ]
+        |> Css.File.compile
+        |> .css
 
 
 view : Model -> Html Msg
 view model =
     div []
-        [ page model ]
+        [ Html.CssHelpers.style compiledCss
+        , page model
+        ]
 
 
 page : Model -> Html Msg
