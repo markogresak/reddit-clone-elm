@@ -9,44 +9,39 @@ import Models exposing (PostId, Post)
 import RemoteData
 
 
-apiBase : String
-apiBase =
-    "http://localhost:4000/api"
-
-
-fetchPosts : Cmd Msg
-fetchPosts =
-    Http.get fetchPostsUrl postsDecoder
+fetchPosts : String -> Cmd Msg
+fetchPosts apiBase =
+    Http.get (fetchPostsUrl apiBase) postsDecoder
         |> RemoteData.sendRequest
         |> Cmd.map Msgs.OnfetchPosts
 
 
-fetchPostsUrl : String
-fetchPostsUrl =
+fetchPostsUrl : String -> String
+fetchPostsUrl apiBase =
     apiBase ++ "/posts"
 
 
-savePostUrl : PostId -> String
-savePostUrl postId =
+savePostUrl : String -> PostId -> String
+savePostUrl apiBase postId =
     apiBase ++ "/posts/" ++ (toString postId)
 
 
-savePostRequest : Post -> Http.Request Post
-savePostRequest post =
+savePostRequest : String -> Post -> Http.Request Post
+savePostRequest apiBase post =
     Http.request
         { body = postEncoder post |> Http.jsonBody
         , expect = Http.expectJson postDecoder
         , headers = []
         , method = "PATCH"
         , timeout = Nothing
-        , url = savePostUrl post.id
+        , url = savePostUrl apiBase post.id
         , withCredentials = False
         }
 
 
-savePostCmd : Post -> Cmd Msg
-savePostCmd post =
-    savePostRequest post
+savePostCmd : String -> Post -> Cmd Msg
+savePostCmd apiBase post =
+    (savePostRequest apiBase post)
         |> Http.send Msgs.OnPostSave
 
 

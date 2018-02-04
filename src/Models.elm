@@ -6,13 +6,15 @@ import RemoteData exposing (WebData)
 type alias Model =
     { posts : WebData (List Post)
     , route : Route
+    , apiBase : String
     }
 
 
-initialModel : Route -> Model
-initialModel route =
+initialModel : Route -> String -> Model
+initialModel route apiBase =
     { posts = RemoteData.Loading
     , route = route
+    , apiBase = apiBase
     }
 
 

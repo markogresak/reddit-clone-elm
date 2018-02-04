@@ -14,8 +14,14 @@ init location =
     let
         currentRoute =
             Routing.parseLocation location
+
+        apiBase =
+            if location.hostname == "localhost" then
+                "http://localhost:4000/api"
+            else
+                "https://reddit-eu.herokuapp.com/api"
     in
-        ( initialModel currentRoute, fetchPosts )
+        ( initialModel currentRoute apiBase, fetchPosts apiBase )
 
 
 subscriptions : Model -> Sub Msg
