@@ -68,7 +68,14 @@ module.exports = {
         exclude: [
           /elm-stuff/, /node_modules/
         ],
-        loader: 'elm-webpack-loader?verbose=true&warn=true'
+        use: {
+          loader: 'elm-webpack-loader',
+          options: {
+            debug: !isProduction,
+            verbose: !isProduction,
+            warn: !isProduction,
+          },
+        },
       },
       {
         test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
