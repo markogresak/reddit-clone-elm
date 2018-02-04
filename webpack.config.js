@@ -1,13 +1,59 @@
-var path = require('path');
+const path = require('path');
+const webpack = require('webpack');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+
+const nodeEnv = process.env.NODE_ENV || 'development';
+const isProduction = nodeEnv === 'production';
+
+const sourcePath = path.join(__dirname, './src');
+const buildPath = path.join(__dirname, './build');
+const publicPath = isProduction ? `/${path.basename(__dirname)}` : '/';
+
+let plugins = [
+  new HtmlWebpackPlugin({
+    template: path.join(sourcePath, 'index.html'),
+    path: buildPath,
+    filename: 'index.html',
+    favicon: path.join(sourcePath, './assets/favicon.ico'),
+  }),
+];
+
+if (isProduction) {
+  plugins = [
+    ...plugins,
+    new webpack.LoaderOptionsPlugin({
+      minimize: true,
+      debug: false,
+    }),
+    new webpack.optimize.UglifyJsPlugin({
+      compress: {
+        warnings: false,
+        screw_ie8: true,
+        conditionals: true,
+        unused: true,
+        comparisons: true,
+        sequences: true,
+        dead_code: true,
+        evaluate: true,
+        if_return: true,
+        join_vars: true,
+      },
+      output: {
+        comments: false,
+      },
+    }),
+  ];
+}
 
 module.exports = {
   entry: {
-    app: ['./src/index.js']
+    app: [path.join(sourcePath, './index.js')]
   },
 
   output: {
-    path: path.resolve(__dirname + '/build'),
-    filename: '[name].js',
+    path: buildPath,
+    publicPath,
+    filename: 'app-[hash].js',
   },
 
   module: {
@@ -16,11 +62,6 @@ module.exports = {
       {
         test: /\.(css|scss)$/,
         use: ['style-loader', 'css-loader']
-      },
-      {
-        test: /\.html$/,
-        exclude: /node_modules/,
-        loader: 'file-loader?name=[name].[ext]'
       },
       {
         test: /\.elm$/,
@@ -39,6 +80,8 @@ module.exports = {
       },
     ],
   },
+
+  plugins,
 
   devServer: {
     inline: true,
