@@ -7,7 +7,6 @@ const isProduction = nodeEnv === 'production';
 
 const sourcePath = path.join(__dirname, './src');
 const buildPath = path.join(__dirname, './build');
-const publicPath = isProduction ? `/${path.basename(__dirname)}` : '/';
 
 let plugins = [
   new HtmlWebpackPlugin({
@@ -52,7 +51,7 @@ module.exports = {
 
   output: {
     path: buildPath,
-    publicPath,
+    publicPath: '/',
     filename: 'app-[hash].js',
   },
 
