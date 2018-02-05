@@ -5,18 +5,18 @@ import Models exposing (PostId, Route(..))
 import UrlParser exposing (..)
 
 
-matchers : Parser (Route -> a) a
-matchers =
+matchers : String -> Parser (Route -> a) a
+matchers locationPrefix =
     oneOf
         [ map PostsRoute top
-        , map PostRoute (s "posts" </> string)
-        , map PostsRoute (s "posts")
+        , map PostRoute (s (locationPrefix ++ "posts") </> string)
+        , map PostsRoute (s (locationPrefix ++ "posts"))
         ]
 
 
-parseLocation : Location -> Route
-parseLocation location =
-    case (parsePath matchers location) of
+parseLocation : String -> Location -> Route
+parseLocation locationPrefix location =
+    case (parsePath (matchers locationPrefix) location) of
         Just route ->
             route
 

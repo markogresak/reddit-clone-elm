@@ -12,16 +12,25 @@ import View exposing (view)
 init : Location -> ( Model, Cmd Msg )
 init location =
     let
-        currentRoute =
-            Routing.parseLocation location
+        isLocalhost =
+            location.hostname == "localhost"
 
         apiBase =
-            if location.hostname == "localhost" then
+            if isLocalhost then
                 "http://localhost:4000/api"
             else
                 "https://reddit-eu.herokuapp.com/api"
+
+        locationPrefix =
+            if isLocalhost then
+                ""
+            else
+                "reddit-clone-elm/"
+
+        currentRoute =
+            Routing.parseLocation locationPrefix location
     in
-        ( initialModel currentRoute apiBase, fetchPosts apiBase )
+        ( initialModel currentRoute apiBase locationPrefix, fetchPosts apiBase )
 
 
 subscriptions : Model -> Sub Msg
