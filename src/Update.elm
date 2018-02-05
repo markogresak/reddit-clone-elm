@@ -15,7 +15,7 @@ update msg model =
         Msgs.OnLocationChange location ->
             let
                 newRoute =
-                    parseLocation model.locationPrefix location
+                    parseLocation location
             in
                 ( { model | route = newRoute }, Cmd.none )
 

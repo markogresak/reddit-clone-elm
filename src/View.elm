@@ -34,7 +34,7 @@ page model =
             Posts.List.view model.posts
 
         Models.PostRoute id ->
-            postEditPage model (Result.withDefault 0 (String.toInt id))
+            postEditPage model id
 
         Models.NotFoundRoute ->
             notFoundView

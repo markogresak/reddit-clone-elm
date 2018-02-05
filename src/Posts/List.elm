@@ -74,4 +74,4 @@ editBtn post =
             [ class "btn regular"
             , href path
             ]
-            [ i [ class "fa fa-pencil mr1" ] [], text "Edit" ]
+            [ i [ class "fa fa-pencil mr1" ] [], text "View" ]

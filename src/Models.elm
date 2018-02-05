@@ -7,16 +7,14 @@ type alias Model =
     { posts : WebData (List Post)
     , route : Route
     , apiBase : String
-    , locationPrefix : String
     }
 
 
-initialModel : Route -> String -> String -> Model
-initialModel route apiBase locationPrefix =
+initialModel : Route -> String -> Model
+initialModel route apiBase =
     { posts = RemoteData.Loading
     , route = route
     , apiBase = apiBase
-    , locationPrefix = locationPrefix
     }
 
 
@@ -32,5 +30,5 @@ type alias Post =
 
 type Route
     = PostsRoute
-    | PostRoute String
+    | PostRoute PostId
     | NotFoundRoute
