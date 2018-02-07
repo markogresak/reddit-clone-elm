@@ -22,6 +22,10 @@ type alias PostId =
     Int
 
 
+type alias UserId =
+    Int
+
+
 type alias Post =
     { id : PostId
     , title : String

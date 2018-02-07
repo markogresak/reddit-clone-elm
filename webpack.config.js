@@ -46,7 +46,10 @@ if (isProduction) {
 
 module.exports = {
   entry: {
-    app: [path.join(sourcePath, './index.js')]
+    app: [
+      'normalize.css',
+      path.join(sourcePath, './index.js')
+    ],
   },
 
   output: {

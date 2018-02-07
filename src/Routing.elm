@@ -1,7 +1,7 @@
 module Routing exposing (..)
 
 import Navigation exposing (Location)
-import Models exposing (PostId, Route(..))
+import Models exposing (PostId, UserId, Route(..))
 import UrlParser exposing (..)
 import Regex exposing (..)
 
@@ -30,6 +30,11 @@ parseLocation location =
             NotFoundRoute
 
 
+homePath : String
+homePath =
+    "/"
+
+
 postsPath : String
 postsPath =
     "posts"
@@ -38,3 +43,18 @@ postsPath =
 postPath : PostId -> String
 postPath id =
     postsPath ++ "/" ++ (toString id)
+
+
+userProfilePath : UserId -> String
+userProfilePath id =
+    "users/" ++ (toString id)
+
+
+registerPath : String
+registerPath =
+    "register"
+
+
+loginPath : String
+loginPath =
+    "login"
