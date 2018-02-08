@@ -1,8 +1,12 @@
 # Reddit clone in Elm
 
+[![Build Status](https://travis-ci.com/markogresak/reddit-clone-elm.svg?token=yBhQFGxVxxqqbo7xzCdE&branch=master)](https://travis-ci.com/markogresak/reddit-clone-elm)
+
 ## Setup
 
-Tested with node `v8.x.x`.
+_Tested with node `v8.x.x`._
+
+Have node and yarn installed.
 
 Install build tool dependencies:
 
