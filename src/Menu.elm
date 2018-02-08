@@ -4,9 +4,10 @@ import Css exposing (..)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href)
 import Models exposing (Model)
-import Msgs exposing (Msg)
+import Msgs exposing (..)
 import StyleVariables exposing (..)
 import Routing exposing (..)
+import LinkTo exposing (linkTo)
 
 
 view : Model -> Html Msg
@@ -23,36 +24,27 @@ view model =
 
         menuRightLinks =
             if isUserLoggedIn then
-                span
-                    []
-                    [ span
-                        [ css
-                            [ marginRight (px 8) ]
-                        ]
+                span []
+                    [ span [ css [ marginRight (px 8) ] ]
                         [ text "Logged in as "
-                        , a
-                            [ href (userProfilePath userId) ]
+                        , linkTo (userProfilePath userId)
+                            []
                             [ text username ]
                         ]
-                    , a
-                        [ href "#" ]
+                    , linkTo "#"
+                        []
                         [ text "Logout" ]
                     ]
             else
-                div
-                    []
-                    [ span
-                        [ css
-                            [ marginRight (px 16) ]
-                        ]
-                        [ a
-                            [ href (registerPath) ]
+                div []
+                    [ span [ css [ marginRight (px 16) ] ]
+                        [ linkTo registerPath
+                            []
                             [ text "Register" ]
                         ]
-                    , span
-                        []
-                        [ a
-                            [ href (loginPath) ]
+                    , span []
+                        [ linkTo loginPath
+                            []
                             [ text "Login" ]
                         ]
                     ]
@@ -67,12 +59,9 @@ view model =
                 , boxSizing borderBox
                 ]
             ]
-            [ span
-                [ css
-                    [ marginRight auto ]
-                ]
-                [ a
-                    [ href homePath ]
+            [ span [ css [ marginRight auto ] ]
+                [ linkTo homePath
+                    []
                     [ text "Home" ]
                 ]
             , menuRightLinks

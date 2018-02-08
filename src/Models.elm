@@ -1,20 +1,23 @@
 module Models exposing (..)
 
 import RemoteData exposing (WebData)
+import Navigation exposing (Location)
 
 
 type alias Model =
-    { posts : WebData (List Post)
-    , route : Route
+    { route : Route
+    , history : List Location
     , apiBase : String
+    , posts : WebData (List Post)
     }
 
 
 initialModel : Route -> String -> Model
 initialModel route apiBase =
-    { posts = RemoteData.Loading
-    , route = route
+    { route = route
+    , history = []
     , apiBase = apiBase
+    , posts = RemoteData.Loading
     }
 
 

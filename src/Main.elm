@@ -30,10 +30,6 @@ subscriptions model =
     Sub.none
 
 
-
--- MAIN
-
-
 main : Program Never Model Msg
 main =
     Navigation.program Msgs.OnLocationChange

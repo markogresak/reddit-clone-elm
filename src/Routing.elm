@@ -37,7 +37,7 @@ homePath =
 
 postsPath : String
 postsPath =
-    "posts"
+    "/posts"
 
 
 postPath : PostId -> String
@@ -47,14 +47,14 @@ postPath id =
 
 userProfilePath : UserId -> String
 userProfilePath id =
-    "users/" ++ (toString id)
+    "/users/" ++ (toString id)
 
 
 registerPath : String
 registerPath =
-    "register"
+    "/register"
 
 
 loginPath : String
 loginPath =
-    "login"
+    "/login"
