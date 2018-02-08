@@ -4,7 +4,7 @@ import Html.Styled exposing (Html, div, text)
 import Models exposing (Model, PostId)
 import Models exposing (Model)
 import Msgs exposing (Msg)
-import Menu
+import Views.Menu as Menu
 import Posts.Edit
 import Posts.List
 import RemoteData

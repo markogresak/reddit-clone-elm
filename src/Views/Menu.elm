@@ -1,4 +1,4 @@
-module Menu exposing (..)
+module Views.Menu exposing (..)
 
 import Css exposing (..)
 import Html.Styled exposing (..)
@@ -7,7 +7,7 @@ import Models exposing (Model)
 import Msgs exposing (..)
 import StyleVariables exposing (..)
 import Routing exposing (..)
-import LinkTo exposing (linkTo)
+import Views.LinkTo exposing (linkTo)
 
 
 view : Model -> Html Msg

@@ -1,4 +1,4 @@
-module LinkTo exposing (linkTo)
+module Views.LinkTo exposing (linkTo)
 
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (href)
