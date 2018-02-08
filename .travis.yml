@@ -1,0 +1,27 @@
+language: node_js
+node_js:
+- '8'
+
+cache:
+  yarn: true
+  directories:
+  - node_modules
+  - elm-stuff
+
+before_script:
+- yarn global add elm
+- elm-package install --yes
+
+script:
+- yarn run build
+
+deploy:
+  provider: s3
+  access_key_id: AKIAISUBU6HCQXMJXFPA
+  secret_access_key:
+    secure: ANSgrxopshMGQHfgpbPV8rMIFe152tqDVnLauNylT2v7ybkR58esE6EteAUoGe1DAaT43JqKJr610jbI5StjHea5WN3oxcQGq/iJTeT2hBVot+/oyLbr4lk+uB8wCjSZq1ULr3fqi6XUg1yxagtqyfDtTmvBn5hHV6ziq0LERtdDor+FlzDZjYimma7Apwpdb7HzvN13WGWvGmjQl2uRphAJWe6OtB6gSiOsQkUc26Zf4UUlK2jV02Wh8fHEqQlEbeu797HVQqHZKupzMDYnvmfJxoOrGaYH2tddOU+ztSK9kR+TiW7h9q/uqyxXVnzUCsAl+IuQG/lJgqMB04U9mIhrShu1LOfKxBvJpb7VPBgaCiJIEG1Nwa/6l2+2naU04PgAZjgvsCixjKs0vd6KrDAupBmmmmfoOauaWG1RT0m5m6stxFVO/oLZL+/qEVUmdFO1Zl1DlQ3E2BdYFjuuxWIxnEIMIFl2HsSavEI1Vf/snmHvkg2mgz2Ufz5XySGVVxsjZDyN8pl2YDkj5cp1/BHcdwoSCLL6hA3F9VfMBcUmqkcHbr1PisaBTDnDiGIhLyDZzciRQewIr4L1cblDjL09HnhY0K04/HtEqbdgshSpme6Vxlpwi6qwKeMd1I6BJ04kF4mrXZGuAJCSDaKfOebmeOcOtYZzT6EhcRteUOM=
+  bucket: reddit-clone-elm.gresak.io
+  local-dir: build
+  acl: public_read
+  on:
+    repo: markogresak/reddit-clone-elm
