@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "css-loader": "^0.26.1",
+    "elm": "^0.18.0",
     "elm-webpack-loader": "^4.2.0",
     "file-loader": "^0.10.0",
     "html-webpack-plugin": "^2.30.1",

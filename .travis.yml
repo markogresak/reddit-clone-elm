@@ -1,27 +1,50 @@
+sudo: false
+
 language: node_js
 node_js:
-- '8'
+  - "8"
 
 cache:
   yarn: true
   directories:
-  - node_modules
-  - elm-stuff
+  - "node_modules"
+  - "elm-stuff"
+  - "sysconfcpus"
 
-before_script:
-- yarn global add elm
-- elm-package install --yes
+before_install:
+  - |
+    if [ ! -d sysconfcpus/bin ];
+    then
+      git clone https://github.com/obmarg/libsysconfcpus.git;
+      cd libsysconfcpus;
+      ./configure --prefix=$TRAVIS_BUILD_DIR/sysconfcpus;
+      make && make install;
+      cd ..;
+    fi
+
+install:
+  - yarn
+  - mv ./node_modules/.bin/elm-make ./node_modules/.bin/elm-make-old
+  - printf "#\041/bin/bash\n\necho \"Running elm-make with sysconfcpus -n 1\"\n\n$TRAVIS_BUILD_DIR/sysconfcpus/bin/sysconfcpus -n 1 elm-make-old \"\$@\"" > ./node_modules/.bin/elm-make
+  - chmod +x ./node_modules/.bin/elm-make
+  - ./node_modules/.bin/elm-package install --yes
 
 script:
 - yarn run build
 
 deploy:
+  # do not remove files created in build stage
+  skip_cleanup: true
   provider: s3
   access_key_id: AKIAISUBU6HCQXMJXFPA
   secret_access_key:
     secure: ANSgrxopshMGQHfgpbPV8rMIFe152tqDVnLauNylT2v7ybkR58esE6EteAUoGe1DAaT43JqKJr610jbI5StjHea5WN3oxcQGq/iJTeT2hBVot+/oyLbr4lk+uB8wCjSZq1ULr3fqi6XUg1yxagtqyfDtTmvBn5hHV6ziq0LERtdDor+FlzDZjYimma7Apwpdb7HzvN13WGWvGmjQl2uRphAJWe6OtB6gSiOsQkUc26Zf4UUlK2jV02Wh8fHEqQlEbeu797HVQqHZKupzMDYnvmfJxoOrGaYH2tddOU+ztSK9kR+TiW7h9q/uqyxXVnzUCsAl+IuQG/lJgqMB04U9mIhrShu1LOfKxBvJpb7VPBgaCiJIEG1Nwa/6l2+2naU04PgAZjgvsCixjKs0vd6KrDAupBmmmmfoOauaWG1RT0m5m6stxFVO/oLZL+/qEVUmdFO1Zl1DlQ3E2BdYFjuuxWIxnEIMIFl2HsSavEI1Vf/snmHvkg2mgz2Ufz5XySGVVxsjZDyN8pl2YDkj5cp1/BHcdwoSCLL6hA3F9VfMBcUmqkcHbr1PisaBTDnDiGIhLyDZzciRQewIr4L1cblDjL09HnhY0K04/HtEqbdgshSpme6Vxlpwi6qwKeMd1I6BJ04kF4mrXZGuAJCSDaKfOebmeOcOtYZzT6EhcRteUOM=
-  bucket: reddit-clone-elm.gresak.io
-  local-dir: build
-  acl: public_read
+  region: "eu-west-1"
+  bucket: "reddit-clone-elm.gresak.io"
+  acl: "public_read"
+  detect_encoding: true
+  default_text_charset: "utf-8"
+  local_dir: "build"
   on:
     repo: markogresak/reddit-clone-elm
+    branch: master

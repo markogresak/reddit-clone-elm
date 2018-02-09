@@ -74,8 +74,8 @@ module.exports = {
           loader: 'elm-webpack-loader',
           options: {
             debug: !isProduction,
-            verbose: !isProduction,
             warn: !isProduction,
+            verbose: true,
           },
         },
       },
