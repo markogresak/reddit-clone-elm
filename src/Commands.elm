@@ -2,10 +2,11 @@ module Commands exposing (..)
 
 import Http
 import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, required)
+import Json.Decode.Extra exposing (date)
+import Json.Decode.Pipeline exposing (decode, optional, required)
 import Json.Encode as Encode
+import Models exposing (..)
 import Msgs exposing (Msg)
-import Models exposing (PostId, Post)
 import RemoteData
 
 
@@ -23,7 +24,7 @@ fetchPostsUrl apiBase =
 
 savePostUrl : String -> PostId -> String
 savePostUrl apiBase postId =
-    apiBase ++ "/posts/" ++ (toString postId)
+    apiBase ++ "/posts/" ++ toString postId
 
 
 savePostRequest : String -> Post -> Http.Request Post
@@ -41,7 +42,7 @@ savePostRequest apiBase post =
 
 savePostCmd : String -> Post -> Cmd Msg
 savePostCmd apiBase post =
-    (savePostRequest apiBase post)
+    savePostRequest apiBase post
         |> Http.send Msgs.OnPostSave
 
 
@@ -55,6 +56,20 @@ postDecoder =
     decode Post
         |> required "id" Decode.int
         |> required "title" Decode.string
+        |> required "url" (Decode.nullable Decode.string)
+        |> optional "text" Decode.string ""
+        |> required "comment_count" Decode.int
+        |> required "rating" Decode.int
+        |> optional "user_post_rating" Decode.int 0
+        |> required "submitted_at" date
+        |> required "user" userDecoder
+
+
+userDecoder : Decode.Decoder User
+userDecoder =
+    decode User
+        |> required "id" Decode.int
+        |> required "username" Decode.string
 
 
 postEncoder : Post -> Encode.Value

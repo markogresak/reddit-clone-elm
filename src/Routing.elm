@@ -45,6 +45,25 @@ postPath id =
     postsPath ++ "/" ++ (toString id)
 
 
+type PostType
+    = LinkPost
+    | TextPost
+
+
+newPostPath : PostType -> String
+newPostPath postType =
+    let
+        postTypeValue =
+            case postType of
+                LinkPost ->
+                    "link"
+
+                TextPost ->
+                    "text"
+    in
+        postsPath ++ "/new/" ++ postTypeValue
+
+
 userProfilePath : UserId -> String
 userProfilePath id =
     "/users/" ++ (toString id)

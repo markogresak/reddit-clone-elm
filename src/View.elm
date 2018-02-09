@@ -1,15 +1,13 @@
 module View exposing (..)
 
-import Html.Styled exposing (Html, div, text)
+import Html.Styled exposing (..)
 import Models exposing (Model, PostId)
 import Models exposing (Model)
 import Msgs exposing (Msg)
 import Views.Menu as Menu
-import Posts.Edit
 import Posts.List
-import RemoteData
 import Css exposing (..)
-import Css.Foreign exposing (global, body, typeSelector, selector)
+import Css.Foreign exposing (global, typeSelector, selector)
 import StyleVariables exposing (..)
 
 
@@ -18,7 +16,7 @@ view model =
     div
         []
         [ global
-            [ body
+            [ Css.Foreign.body
                 [ fontFamily sansSerif
                 , color defaultTextColor
                 ]
@@ -31,21 +29,25 @@ view model =
                 ]
             ]
         , Menu.view model
+        , page model
         ]
 
 
+page : Model -> Html Msg
+page model =
+    case model.route of
+        Models.PostsRoute ->
+            Posts.List.view model model.posts
 
--- page : Model -> Html Msg
--- page model =
---     case model.route of
---         Models.PostsRoute ->
---             Posts.List.view model.posts
---
---         Models.PostRoute id ->
---             postEditPage model id
---
---         Models.NotFoundRoute ->
---             notFoundView
+        Models.PostRoute id ->
+            -- postEditPage model id
+            text "edit"
+
+        Models.NotFoundRoute ->
+            notFoundView
+
+
+
 -- postEditPage : Model -> PostId -> Html Msg
 -- postEditPage model postId =
 --     case model.posts of
@@ -76,5 +78,4 @@ view model =
 notFoundView : Html msg
 notFoundView =
     div []
-        [ text "Not found"
-        ]
+        [ text "Not found" ]

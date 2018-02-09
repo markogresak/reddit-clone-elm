@@ -1,29 +1,25 @@
 module Posts.List exposing (..)
 
-import Html exposing (..)
-import Html.Attributes exposing (class, href)
-import Models exposing (Post)
+import Css exposing (..)
+import Html.Styled exposing (..)
+import Html.Styled.Attributes exposing (css)
+import StyleVariables exposing (..)
+import Models exposing (Model, Post)
 import Msgs exposing (Msg)
 import RemoteData exposing (WebData)
-import Routing exposing (postPath)
+import Views.PostItem exposing (postItem)
+import Routing exposing (..)
+import Views.LinkTo exposing (linkTo)
 
 
-view : WebData (List Post) -> Html Msg
-view response =
+view : Model -> WebData (List Post) -> Html Msg
+view model response =
     div []
-        [ nav
-        , maybeList response
-        ]
+        [ maybeList model response ]
 
 
-nav : Html Msg
-nav =
-    div [ class "clearfix mb2 white bg-black" ]
-        [ div [ class "left p2" ] [ text "Posts" ] ]
-
-
-maybeList : WebData (List Post) -> Html Msg
-maybeList response =
+maybeList : Model -> WebData (List Post) -> Html Msg
+maybeList model response =
     case response of
         RemoteData.NotAsked ->
             text ""
@@ -32,46 +28,45 @@ maybeList response =
             text "Loading..."
 
         RemoteData.Success posts ->
-            list posts
+            list model posts
 
         RemoteData.Failure error ->
             text (toString error)
 
 
-list : List Post -> Html Msg
-list posts =
-    div [ class "p2" ]
-        [ table []
-            [ thead []
-                [ tr []
-                    [ th [] [ text "Id" ]
-                    , th [] [ text "Name" ]
-                    , th [] [ text "Actions" ]
-                    ]
+newPostButton : PostType -> String -> Html Msg
+newPostButton postType buttonText =
+    div
+        [ css
+            [ marginRight (px 10) ]
+        ]
+        [ linkTo (newPostPath postType)
+            []
+            [ button [] [ text buttonText ]
+            ]
+        ]
+
+
+list : Model -> List Post -> Html Msg
+list model posts =
+    div []
+        [ div
+            [ css
+                [ marginTop (px 20)
+                , marginRight (px 16)
+                , displayFlex
+                , justifyContent flexEnd
                 ]
-            , tbody [] (List.map postRow posts)
             ]
-        ]
-
-
-postRow : Post -> Html Msg
-postRow post =
-    tr []
-        [ td [] [ text (toString post.id) ]
-        , td [] [ text post.title ]
-        , td []
-            [ editBtn post ]
-        ]
-
-
-editBtn : Post -> Html.Html Msg
-editBtn post =
-    let
-        path =
-            postPath post.id
-    in
-        a
-            [ class "btn regular"
-            , href path
+            [ newPostButton LinkPost "+ Add new link post"
+            , newPostButton TextPost "+ Add new text post"
             ]
-            [ i [ class "fa fa-pencil mr1" ] [], text "View" ]
+        , div
+            [ css
+                [ maxWidth (px contentWidth)
+                , margin2 (px 0) auto
+                , padding (px postsListSpacing)
+                ]
+            ]
+            (List.map (postItem model) posts)
+        ]

@@ -4,6 +4,7 @@ import Http
 import Models exposing (Post, PostId)
 import Navigation exposing (Location)
 import RemoteData exposing (WebData)
+import Date exposing (Date)
 
 
 type Msg
@@ -11,3 +12,4 @@ type Msg
     | OnfetchPosts (WebData (List Post))
     | OnLocationChange Location
     | OnPostSave (Result Http.Error Post)
+    | SetCurrentTime (Maybe Date)
