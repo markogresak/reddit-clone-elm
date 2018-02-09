@@ -1,13 +1,12 @@
 module Main exposing (..)
 
-import Commands exposing (fetchPosts)
-import Models exposing (Model, initialModel)
+import Html.Styled exposing (toUnstyled)
+import Models exposing (..)
 import Msgs exposing (Msg)
 import Navigation exposing (Location)
-import Routing
-import Update exposing (update)
+import Route
+import Update exposing (update, initLocationState)
 import View exposing (view)
-import Html.Styled exposing (toUnstyled)
 
 
 init : Location -> ( Model, Cmd Msg )
@@ -20,9 +19,12 @@ init location =
                 "https://reddit-eu.herokuapp.com/api"
 
         currentRoute =
-            Routing.parseLocation location
+            Route.parseLocation location
+
+        model =
+            initialModel currentRoute apiBase
     in
-        ( initialModel currentRoute apiBase, fetchPosts apiBase )
+        initLocationState location model
 
 
 subscriptions : Model -> Sub Msg

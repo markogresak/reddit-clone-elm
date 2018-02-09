@@ -5,26 +5,12 @@ import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css)
 import StyleVariables exposing (..)
 import Msgs exposing (..)
-import Models exposing (Post)
 import List exposing (concat)
 import Ternary exposing ((?))
 
 
-type alias RatingButtonOptions =
-    { isComment : Bool
-    , isCollapsed : Bool
-    }
-
-
-type alias VoteButtonOptions =
-    { isDownButton : Bool
-    , isComment : Bool
-    , isDisabled : Bool
-    }
-
-
-voteButton : Int -> VoteButtonOptions -> Html msg
-voteButton userRating { isDownButton, isComment, isDisabled } =
+voteButton : Int -> Bool -> Bool -> Bool -> Html msg
+voteButton userRating isDownButton isComment isDisabled =
     let
         arrowSize =
             px (isComment ? 8 <| 10)
@@ -48,12 +34,12 @@ voteButton userRating { isDownButton, isComment, isDisabled } =
             []
 
 
-ratingButtons : Post -> RatingButtonOptions -> Html Msg
-ratingButtons post options =
+ratingButtons : Int -> Int -> Bool -> Bool -> Html Msg
+ratingButtons rating userRating isComment isCollapsed =
     let
         commentStyles : List Css.Style
         commentStyles =
-            options.isComment
+            isComment
                 ? [ marginTop (px 10)
                   , marginRight (px 8)
                   , flexBasis auto
@@ -63,21 +49,21 @@ ratingButtons post options =
 
         collapsedStyles : List Css.Style
         collapsedStyles =
-            options.isCollapsed ? [ visibility hidden ] <| []
+            isCollapsed ? [ visibility hidden ] <| []
 
         buttonSpacer =
-            case options.isComment of
+            case isComment of
                 True ->
                     div [ css [ height (px 8) ] ] []
 
                 False ->
                     div
                         [ css
-                            [ color (ratingColor post.userRating)
+                            [ color (ratingColor userRating)
                             , margin2 (px ratingButtonsTextSpacing) (px 0)
                             ]
                         ]
-                        [ text (toString post.rating) ]
+                        [ text (toString rating) ]
     in
         div
             [ css
@@ -92,7 +78,7 @@ ratingButtons post options =
                     ]
                 )
             ]
-            [ voteButton post.userRating { isDownButton = False, isComment = options.isComment, isDisabled = False }
+            [ voteButton userRating False isComment False
             , buttonSpacer
-            , voteButton post.userRating { isDownButton = True, isComment = options.isComment, isDisabled = False }
+            , voteButton userRating True isComment False
             ]

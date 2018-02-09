@@ -3,10 +3,10 @@ module Views.Menu exposing (..)
 import Css exposing (..)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href)
-import Models exposing (Model)
+import Models exposing (..)
 import Msgs exposing (..)
 import StyleVariables exposing (..)
-import Routing exposing (..)
+import Route exposing (..)
 import Views.LinkTo exposing (linkTo)
 
 
@@ -27,7 +27,7 @@ view model =
                 span []
                     [ span [ css [ marginRight (px 8) ] ]
                         [ text "Logged in as "
-                        , linkTo (userProfilePath userId)
+                        , linkTo (routeToString (UserRoute userId))
                             []
                             [ text username ]
                         ]
@@ -38,12 +38,12 @@ view model =
             else
                 div []
                     [ span [ css [ marginRight (px 16) ] ]
-                        [ linkTo registerPath
+                        [ linkTo (routeToString RegisterRoute)
                             []
                             [ text "Register" ]
                         ]
                     , span []
-                        [ linkTo loginPath
+                        [ linkTo (routeToString LoginRoute)
                             []
                             [ text "Login" ]
                         ]
@@ -60,7 +60,7 @@ view model =
                 ]
             ]
             [ span [ css [ marginRight auto ] ]
-                [ linkTo homePath
+                [ linkTo (routeToString PostsRoute)
                     []
                     [ text "Home" ]
                 ]

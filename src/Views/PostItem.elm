@@ -3,10 +3,11 @@ module Views.PostItem exposing (postItem)
 import Css exposing (..)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href)
-import Models exposing (Model, Post)
+import Models exposing (..)
+import Route exposing (..)
 import Msgs exposing (..)
 import StyleVariables exposing (..)
-import Routing exposing (..)
+import Route exposing (..)
 import Date.Distance
 import Date exposing (Date)
 import Regex exposing (..)
@@ -49,7 +50,7 @@ postTitle post =
                 ]
 
         Nothing ->
-            linkTo (postPath post.id) [] [ text post.title ]
+            linkTo (routeToString (PostRoute post.id)) [] [ text post.title ]
 
 
 details : Post -> Maybe Date -> Html Msg
@@ -72,7 +73,7 @@ details post now =
             ]
             [ span []
                 [ text ("Submitted " ++ submittedAgo ++ " ago by ")
-                , linkTo (userProfilePath post.user.id)
+                , linkTo (routeToString (UserRoute post.user.id))
                     []
                     [ text post.user.username ]
                 ]
@@ -82,7 +83,7 @@ details post now =
 commentCount : Post -> Html Msg
 commentCount post =
     div []
-        [ linkTo (postPath post.id)
+        [ linkTo (routeToString (PostRoute post.id))
             [ css
                 [ fontSize (px textSmSize)
                 , fontWeight bold
@@ -102,7 +103,7 @@ postItem model post =
             , minHeight (px postHeight)
             ]
         ]
-        [ ratingButtons post { isComment = False, isCollapsed = False }
+        [ ratingButtons post.rating post.userRating False False
         , div
             [ css
                 [ displayFlex

@@ -12,43 +12,36 @@ import RemoteData
 
 fetchPosts : String -> Cmd Msg
 fetchPosts apiBase =
-    Http.get (fetchPostsUrl apiBase) postsDecoder
+    Http.get (postsUrl apiBase) postListDecoder
         |> RemoteData.sendRequest
         |> Cmd.map Msgs.OnfetchPosts
 
 
-fetchPostsUrl : String -> String
-fetchPostsUrl apiBase =
+fetchPost : String -> PostId -> Cmd Msg
+fetchPost apiBase postId =
+    Http.get (postUrl apiBase postId) postItemDecoder
+        |> RemoteData.sendRequest
+        |> Cmd.map Msgs.OnfetchCurrentPost
+
+
+postsUrl : String -> String
+postsUrl apiBase =
     apiBase ++ "/posts"
 
 
-savePostUrl : String -> PostId -> String
-savePostUrl apiBase postId =
-    apiBase ++ "/posts/" ++ toString postId
+postUrl : String -> PostId -> String
+postUrl apiBase postId =
+    postsUrl apiBase ++ "/" ++ toString postId
 
 
-savePostRequest : String -> Post -> Http.Request Post
-savePostRequest apiBase post =
-    Http.request
-        { body = postEncoder post |> Http.jsonBody
-        , expect = Http.expectJson postDecoder
-        , headers = []
-        , method = "PATCH"
-        , timeout = Nothing
-        , url = savePostUrl apiBase post.id
-        , withCredentials = False
-        }
-
-
-savePostCmd : String -> Post -> Cmd Msg
-savePostCmd apiBase post =
-    savePostRequest apiBase post
-        |> Http.send Msgs.OnPostSave
-
-
-postsDecoder : Decode.Decoder (List Post)
-postsDecoder =
+postListDecoder : Decode.Decoder (List Post)
+postListDecoder =
     Decode.at [ "data" ] (Decode.list postDecoder)
+
+
+postItemDecoder : Decode.Decoder Post
+postItemDecoder =
+    Decode.at [ "data" ] postDecoder
 
 
 postDecoder : Decode.Decoder Post
@@ -63,6 +56,7 @@ postDecoder =
         |> optional "user_post_rating" Decode.int 0
         |> required "submitted_at" date
         |> required "user" userDecoder
+        |> optional "comments" (Decode.list commentDecoder) []
 
 
 userDecoder : Decode.Decoder User
@@ -70,6 +64,24 @@ userDecoder =
     decode User
         |> required "id" Decode.int
         |> required "username" Decode.string
+
+
+commentListDecoder : Decode.Decoder (List Comment)
+commentListDecoder =
+    Decode.at [ "data" ] (Decode.list commentDecoder)
+
+
+commentDecoder : Decode.Decoder Comment
+commentDecoder =
+    decode Comment
+        |> required "id" Decode.int
+        |> required "text" Decode.string
+        |> required "submitted_at" date
+        |> required "rating" Decode.int
+        |> required "post_id" Decode.int
+        |> required "parent_comment_id" (Decode.nullable Decode.int)
+        |> optional "user_comment_rating" Decode.int 0
+        |> required "user" userDecoder
 
 
 postEncoder : Post -> Encode.Value

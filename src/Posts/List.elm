@@ -4,11 +4,11 @@ import Css exposing (..)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css)
 import StyleVariables exposing (..)
-import Models exposing (Model, Post)
+import Models exposing (..)
+import Route exposing (..)
 import Msgs exposing (Msg)
 import RemoteData exposing (WebData)
 import Views.PostItem exposing (postItem)
-import Routing exposing (..)
 import Views.LinkTo exposing (linkTo)
 
 
@@ -40,7 +40,7 @@ newPostButton postType buttonText =
         [ css
             [ marginRight (px 10) ]
         ]
-        [ linkTo (newPostPath postType)
+        [ linkTo (routeToString (NewPostRoute (postTypeToString postType)))
             []
             [ button [] [ text buttonText ]
             ]

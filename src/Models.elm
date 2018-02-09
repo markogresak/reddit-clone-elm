@@ -1,8 +1,8 @@
 module Models exposing (..)
 
-import RemoteData exposing (WebData)
-import Navigation exposing (Location)
 import Date exposing (Date)
+import Navigation exposing (Location)
+import RemoteData exposing (WebData)
 
 
 type alias Model =
@@ -11,6 +11,8 @@ type alias Model =
     , apiBase : String
     , now : Maybe Date
     , posts : WebData (List Post)
+    , currentPost : WebData Post
+    , currentUser : User
     }
 
 
@@ -21,11 +23,9 @@ initialModel route apiBase =
     , apiBase = apiBase
     , now = Nothing
     , posts = RemoteData.Loading
+    , currentPost = RemoteData.Loading
+    , currentUser = { id = 123, username = "kek" }
     }
-
-
-type alias PostId =
-    Int
 
 
 type alias UserId =
@@ -38,6 +38,10 @@ type alias User =
     }
 
 
+type alias PostId =
+    Int
+
+
 type alias Post =
     { id : PostId
     , title : String
@@ -48,10 +52,36 @@ type alias Post =
     , userRating : Int
     , submittedAt : Date
     , user : User
+    , comments : List Comment
     }
+
+
+type alias CommentId =
+    Int
+
+
+type alias Comment =
+    { id : CommentId
+    , text : String
+    , submittedAt : Date
+    , rating : Int
+    , postId : PostId
+    , parentCommentId : Maybe CommentId
+    , userRating : Int
+    , user : User
+    }
+
+
+type PostType
+    = LinkPost
+    | TextPost
 
 
 type Route
     = PostsRoute
     | PostRoute PostId
+    | NewPostRoute String
+    | UserRoute UserId
+    | LoginRoute
+    | RegisterRoute
     | NotFoundRoute

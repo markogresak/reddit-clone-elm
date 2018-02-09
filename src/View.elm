@@ -1,14 +1,14 @@
 module View exposing (..)
 
 import Html.Styled exposing (..)
-import Models exposing (Model, PostId)
-import Models exposing (Model)
+import Models exposing (..)
 import Msgs exposing (Msg)
-import Views.Menu as Menu
-import Posts.List
 import Css exposing (..)
 import Css.Foreign exposing (global, typeSelector, selector)
 import StyleVariables exposing (..)
+import Views.Menu as Menu
+import Posts.List
+import Posts.SinglePost
 
 
 view : Model -> Html Msg
@@ -40,39 +40,22 @@ page model =
             Posts.List.view model model.posts
 
         Models.PostRoute id ->
-            -- postEditPage model id
-            text "edit"
+            Posts.SinglePost.view model model.currentPost id
+
+        Models.NewPostRoute _ ->
+            Debug.crash "TODO"
+
+        Models.UserRoute _ ->
+            Debug.crash "TODO"
+
+        Models.LoginRoute ->
+            Debug.crash "TODO"
+
+        Models.RegisterRoute ->
+            Debug.crash "TODO"
 
         Models.NotFoundRoute ->
             notFoundView
-
-
-
--- postEditPage : Model -> PostId -> Html Msg
--- postEditPage model postId =
---     case model.posts of
---         RemoteData.NotAsked ->
---             text ""
---
---         RemoteData.Loading ->
---             text "Loading ..."
---
---         RemoteData.Success posts ->
---             let
---                 maybePost =
---                     posts
---                         |> List.filter (\post -> post.id == postId)
---                         |> List.head
---             in
---                 case maybePost of
---                     Just post ->
---                         Posts.Edit.view post
---
---                     Nothing ->
---                         notFoundView
---
---         RemoteData.Failure err ->
---             text (toString err)
 
 
 notFoundView : Html msg

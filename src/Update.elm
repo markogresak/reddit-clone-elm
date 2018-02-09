@@ -1,10 +1,10 @@
 module Update exposing (..)
 
-import Models exposing (Model, Post)
+import Models exposing (..)
+import Commands exposing (..)
 import Msgs exposing (Msg)
-import Routing exposing (parseLocation)
-import RemoteData
-import Navigation
+import Route exposing (parseLocation)
+import Navigation exposing (Location)
 import Date exposing (Date)
 import Task
 
@@ -12,6 +12,31 @@ import Task
 getCurrentDate : Cmd Msg
 getCurrentDate =
     Task.perform (Just >> Msgs.SetCurrentTime) Date.now
+
+
+initLocationState : Location -> Model -> ( Model, Cmd Msg )
+initLocationState location model =
+    case (Route.parseLocation location) of
+        PostsRoute ->
+            ( model, fetchPosts model.apiBase )
+
+        PostRoute postId ->
+            ( model, fetchPost model.apiBase postId )
+
+        NewPostRoute postType ->
+            ( model, Cmd.none )
+
+        UserRoute userId ->
+            ( model, Cmd.none )
+
+        LoginRoute ->
+            ( model, Cmd.none )
+
+        RegisterRoute ->
+            ( model, Cmd.none )
+
+        NotFoundRoute ->
+            ( model, Cmd.none )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -24,31 +49,10 @@ update msg model =
             ( { model | posts = response }, getCurrentDate )
 
         Msgs.OnLocationChange location ->
-            ( { model | history = location :: model.history, route = parseLocation location }, getCurrentDate )
-
-        Msgs.OnPostSave (Ok post) ->
-            ( updatePost model post, Cmd.none )
-
-        Msgs.OnPostSave (Err error) ->
-            ( model, Cmd.none )
+            initLocationState location { model | history = location :: model.history, route = parseLocation location }
 
         Msgs.SetCurrentTime date ->
             ( { model | now = date }, Cmd.none )
 
-
-updatePost : Model -> Post -> Model
-updatePost model updatedPost =
-    let
-        pick currentPost =
-            if updatedPost.id == currentPost.id then
-                updatedPost
-            else
-                currentPost
-
-        updatePostList posts =
-            List.map pick posts
-
-        updatedPosts =
-            RemoteData.map updatePostList model.posts
-    in
-        { model | posts = updatedPosts }
+        Msgs.OnfetchCurrentPost response ->
+            ( { model | currentPost = response }, getCurrentDate )
