@@ -3,7 +3,6 @@ module Routing exposing (..)
 import Navigation exposing (Location)
 import Models exposing (PostId, UserId, Route(..))
 import UrlParser exposing (..)
-import Regex exposing (..)
 
 
 matchers : Parser (Route -> a) a
@@ -15,14 +14,9 @@ matchers =
         ]
 
 
-removeProductionPathname : String -> String
-removeProductionPathname =
-    replace (AtMost 1) (regex "^/reddit-clone-elm/") (\_ -> "/")
-
-
 parseLocation : Location -> Route
 parseLocation location =
-    case (parsePath matchers { location | pathname = removeProductionPathname location.pathname }) of
+    case (parsePath matchers location) of
         Just route ->
             route
 
