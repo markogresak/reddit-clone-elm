@@ -24,9 +24,12 @@ before_install:
 
 install:
   - yarn
-  - mv ./node_modules/.bin/elm-make ./node_modules/.bin/elm-make-old
-  - printf "#\041/bin/bash\n\necho \"Running elm-make with sysconfcpus -n 1\"\n\n$TRAVIS_BUILD_DIR/sysconfcpus/bin/sysconfcpus -n 1 elm-make-old \"\$@\"" > ./node_modules/.bin/elm-make
-  - chmod +x ./node_modules/.bin/elm-make
+  - |
+    if [ ! -f ./node_modules/.bin/elm-make-old ]; then
+      mv ./node_modules/.bin/elm-make ./node_modules/.bin/elm-make-old
+      printf "#\041/bin/bash\n\necho \"Running elm-make with sysconfcpus -n 1\"\n\n$TRAVIS_BUILD_DIR/sysconfcpus/bin/sysconfcpus -n 1 elm-make-old \"\$@\"" > ./node_modules/.bin/elm-make
+      chmod +x ./node_modules/.bin/elm-make
+    fi
   - ./node_modules/.bin/elm-package install --yes
 
 script:
