@@ -1,8 +1,7 @@
 module Update exposing (..)
 
-import Models exposing (..)
+import Model exposing (..)
 import Request.Post as Post
-import Msgs exposing (Msg)
 import Route exposing (parseLocation)
 import Navigation exposing (Location)
 import Date exposing (Date)
@@ -11,7 +10,7 @@ import Task
 
 getCurrentDate : Cmd Msg
 getCurrentDate =
-    Task.perform (Just >> Msgs.SetCurrentTime) Date.now
+    Task.perform (Just >> SetCurrentTime) Date.now
 
 
 initLocationState : Location -> Model -> ( Model, Cmd Msg )
@@ -42,17 +41,17 @@ initLocationState location model =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Msgs.NavigateTo route ->
-            ( model, Navigation.newUrl route )
-
-        Msgs.OnfetchPosts response ->
-            ( { model | posts = response }, getCurrentDate )
-
-        Msgs.OnLocationChange location ->
+        OnLocationChange location ->
             initLocationState location { model | history = location :: model.history, route = parseLocation location }
 
-        Msgs.SetCurrentTime date ->
+        NavigateTo route ->
+            ( model, Navigation.newUrl route )
+
+        OnfetchPosts response ->
+            ( { model | posts = response }, getCurrentDate )
+
+        SetCurrentTime date ->
             ( { model | now = date }, Cmd.none )
 
-        Msgs.OnfetchCurrentPost response ->
+        OnfetchCurrentPost response ->
             ( { model | currentPost = response }, getCurrentDate )

@@ -1,8 +1,7 @@
 module Main exposing (..)
 
 import Html.Styled exposing (toUnstyled)
-import Models exposing (..)
-import Msgs exposing (Msg)
+import Model exposing (..)
 import Navigation exposing (Location)
 import Route
 import Update exposing (update, initLocationState)
@@ -20,11 +19,8 @@ init location =
 
         currentRoute =
             Route.parseLocation location
-
-        model =
-            initialModel currentRoute apiBase
     in
-        initLocationState location model
+        initLocationState location (initialModel currentRoute apiBase)
 
 
 subscriptions : Model -> Sub Msg
@@ -34,7 +30,7 @@ subscriptions model =
 
 main : Program Never Model Msg
 main =
-    Navigation.program Msgs.OnLocationChange
+    Navigation.program OnLocationChange
         { init = init
         , view = view >> toUnstyled
         , update = update

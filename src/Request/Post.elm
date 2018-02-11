@@ -6,8 +6,7 @@ import Json.Decode.Extra exposing (date)
 import Json.Decode.Pipeline exposing (decode, optional, required)
 import Json.Encode as Encode
 import Json.Encode.Extra exposing (maybe)
-import Models exposing (..)
-import Msgs exposing (Msg)
+import Model exposing (..)
 import RemoteData
 
 
@@ -15,14 +14,14 @@ list : String -> Cmd Msg
 list apiBase =
     Http.get (postsUrl apiBase) postListDecoder
         |> RemoteData.sendRequest
-        |> Cmd.map Msgs.OnfetchPosts
+        |> Cmd.map OnfetchPosts
 
 
 get : String -> PostId -> Cmd Msg
 get apiBase postId =
     Http.get (postUrl apiBase postId) postItemDecoder
         |> RemoteData.sendRequest
-        |> Cmd.map Msgs.OnfetchCurrentPost
+        |> Cmd.map OnfetchCurrentPost
 
 
 postsUrl : String -> String

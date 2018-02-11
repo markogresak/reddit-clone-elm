@@ -1,7 +1,7 @@
 module Route exposing (..)
 
 import Navigation exposing (Location)
-import Models exposing (..)
+import Model exposing (..)
 import UrlParser exposing (..)
 
 
@@ -13,6 +13,22 @@ postTypeToString postType =
 
         TextPost ->
             "text"
+
+        UnknownPost ->
+            ""
+
+
+stringToPostType : String -> PostType
+stringToPostType postTypeName =
+    case postTypeName of
+        "link" ->
+            LinkPost
+
+        "text" ->
+            TextPost
+
+        _ ->
+            UnknownPost
 
 
 routeToString : Route -> String

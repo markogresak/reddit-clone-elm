@@ -1,4 +1,4 @@
-module Models exposing (..)
+module Model exposing (..)
 
 import Date exposing (Date)
 import Navigation exposing (Location)
@@ -82,6 +82,7 @@ type alias Comment =
 type PostType
     = LinkPost
     | TextPost
+    | UnknownPost
 
 
 type Route
@@ -92,3 +93,12 @@ type Route
     | LoginRoute
     | RegisterRoute
     | NotFoundRoute
+
+
+type Msg
+    = NavigateTo String
+    | OnfetchPosts (WebData (List Post))
+    | OnfetchCurrentPost (WebData Post)
+    | OnLocationChange Location
+      -- | OnPostSave (Result Http.Error Post)
+    | SetCurrentTime (Maybe Date)

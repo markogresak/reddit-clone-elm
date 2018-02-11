@@ -3,7 +3,7 @@ module Views.LinkTo exposing (linkTo)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (href)
 import Html.Styled.Events exposing (onWithOptions)
-import Msgs exposing (..)
+import Model exposing (..)
 import List exposing (concat)
 import Json.Decode
 

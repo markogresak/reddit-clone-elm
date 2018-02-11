@@ -4,7 +4,7 @@ import Css exposing (..)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css)
 import StyleVariables exposing (..)
-import Msgs exposing (..)
+import Model exposing (..)
 import List exposing (concat)
 import Ternary exposing ((?))
 

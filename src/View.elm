@@ -1,14 +1,12 @@
 module View exposing (..)
 
 import Html.Styled exposing (..)
-import Models exposing (..)
-import Msgs exposing (Msg)
+import Model exposing (..)
 import Css exposing (..)
 import Css.Foreign exposing (global, typeSelector, selector)
 import StyleVariables exposing (..)
 import Views.Menu as Menu
-import Posts.List
-import Posts.SinglePost
+import Page.Posts
 
 
 view : Model -> Html Msg
@@ -36,25 +34,25 @@ view model =
 page : Model -> Html Msg
 page model =
     case model.route of
-        Models.PostsRoute ->
-            Posts.List.view model model.posts
+        PostsRoute ->
+            Page.Posts.listView model model.posts
 
-        Models.PostRoute id ->
-            Posts.SinglePost.view model model.currentPost id
+        PostRoute id ->
+            Page.Posts.itemView model model.currentPost
 
-        Models.NewPostRoute _ ->
+        NewPostRoute _ ->
             Debug.crash "TODO"
 
-        Models.UserRoute _ ->
+        UserRoute _ ->
             Debug.crash "TODO"
 
-        Models.LoginRoute ->
+        LoginRoute ->
             Debug.crash "TODO"
 
-        Models.RegisterRoute ->
+        RegisterRoute ->
             Debug.crash "TODO"
 
-        Models.NotFoundRoute ->
+        NotFoundRoute ->
             notFoundView
 
 
