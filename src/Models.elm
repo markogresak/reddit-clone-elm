@@ -56,6 +56,13 @@ type alias Post =
     }
 
 
+type alias NewPost =
+    { title : String
+    , url : Maybe String
+    , text : Maybe String
+    }
+
+
 type alias CommentId =
     Int
 

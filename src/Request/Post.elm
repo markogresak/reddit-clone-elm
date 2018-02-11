@@ -1,24 +1,25 @@
-module Commands exposing (..)
+module Request.Post exposing (list, get)
 
 import Http
 import Json.Decode as Decode
 import Json.Decode.Extra exposing (date)
 import Json.Decode.Pipeline exposing (decode, optional, required)
 import Json.Encode as Encode
+import Json.Encode.Extra exposing (maybe)
 import Models exposing (..)
 import Msgs exposing (Msg)
 import RemoteData
 
 
-fetchPosts : String -> Cmd Msg
-fetchPosts apiBase =
+list : String -> Cmd Msg
+list apiBase =
     Http.get (postsUrl apiBase) postListDecoder
         |> RemoteData.sendRequest
         |> Cmd.map Msgs.OnfetchPosts
 
 
-fetchPost : String -> PostId -> Cmd Msg
-fetchPost apiBase postId =
+get : String -> PostId -> Cmd Msg
+get apiBase postId =
     Http.get (postUrl apiBase postId) postItemDecoder
         |> RemoteData.sendRequest
         |> Cmd.map Msgs.OnfetchCurrentPost
@@ -55,12 +56,12 @@ postDecoder =
         |> required "rating" Decode.int
         |> optional "user_post_rating" Decode.int 0
         |> required "submitted_at" date
-        |> required "user" userDecoder
+        |> required "user" postUserDecoder
         |> optional "comments" (Decode.list commentDecoder) []
 
 
-userDecoder : Decode.Decoder User
-userDecoder =
+postUserDecoder : Decode.Decoder User
+postUserDecoder =
     decode User
         |> required "id" Decode.int
         |> required "username" Decode.string
@@ -81,15 +82,16 @@ commentDecoder =
         |> required "post_id" Decode.int
         |> required "parent_comment_id" (Decode.nullable Decode.int)
         |> optional "user_comment_rating" Decode.int 0
-        |> required "user" userDecoder
+        |> required "user" postUserDecoder
 
 
-postEncoder : Post -> Encode.Value
-postEncoder post =
+newPostEncoder : NewPost -> Encode.Value
+newPostEncoder newPost =
     let
-        attributes =
-            [ ( "id", Encode.int post.id )
-            , ( "title", Encode.string post.title )
+        post =
+            [ ( "title", Encode.string newPost.title )
+            , ( "url", maybe Encode.string newPost.url )
+            , ( "text", maybe Encode.string newPost.text )
             ]
     in
-        Encode.object attributes
+        Encode.object [ ( "post", Encode.object post ) ]

@@ -1,7 +1,7 @@
 module Update exposing (..)
 
 import Models exposing (..)
-import Commands exposing (..)
+import Request.Post as Post
 import Msgs exposing (Msg)
 import Route exposing (parseLocation)
 import Navigation exposing (Location)
@@ -18,10 +18,10 @@ initLocationState : Location -> Model -> ( Model, Cmd Msg )
 initLocationState location model =
     case (Route.parseLocation location) of
         PostsRoute ->
-            ( model, fetchPosts model.apiBase )
+            ( model, Post.list model.apiBase )
 
         PostRoute postId ->
-            ( model, fetchPost model.apiBase postId )
+            ( model, Post.get model.apiBase postId )
 
         NewPostRoute postType ->
             ( model, Cmd.none )
