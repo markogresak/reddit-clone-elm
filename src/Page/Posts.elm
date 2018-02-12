@@ -10,6 +10,7 @@ import RemoteData exposing (WebData)
 import Views.LinkTo exposing (linkTo)
 import Views.PostItem exposing (postItem)
 import Views.CommentItem exposing (commentItem)
+import Ternary exposing ((?))
 
 
 listView : Model -> WebData (List Post) -> Html Msg
@@ -62,9 +63,13 @@ postList model posts =
                 , justifyContent flexEnd
                 ]
             ]
-            [ newPostButton LinkPost "+ Add new link post"
-            , newPostButton TextPost "+ Add new text post"
-            ]
+            ((model.sessionUser /= Nothing)
+                ? [ newPostButton LinkPost "+ Add new link post"
+                  , newPostButton TextPost "+ Add new text post"
+                  ]
+             <|
+                []
+            )
         , div
             [ css
                 [ maxWidth (px contentWidth)
