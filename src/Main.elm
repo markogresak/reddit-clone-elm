@@ -18,6 +18,7 @@ import Views.Menu as Menu
 import Page.NotFound as NotFound
 import Page.Login as Login
 import Page.Posts as Posts
+import Page.NewPost as NewPost
 
 
 decodeSession : Value -> Maybe Session
@@ -39,6 +40,17 @@ init value location =
 
         currentRoute =
             Route.parseLocation location
+
+        sessionUser =
+            decodeSession value
+
+        newPostType =
+            case currentRoute of
+                NewPostRoute postTypeString ->
+                    Route.stringToPostType postTypeString
+
+                _ ->
+                    UnknownPost
     in
         initLocationState
             currentRoute
@@ -47,8 +59,9 @@ init value location =
             , now = Nothing
             , posts = RemoteData.Loading
             , currentPost = RemoteData.Loading
-            , sessionUser = (decodeSession value)
+            , sessionUser = sessionUser
             , loginData = (Login.initialModel apiBase)
+            , newPostData = (NewPost.initialModel apiBase sessionUser newPostType)
             }
 
 
@@ -66,8 +79,21 @@ initLocationState route model =
         PostRoute postId ->
             ( model, Post.get model.apiBase postId )
 
-        NewPostRoute postType ->
-            ( model, Cmd.none )
+        NewPostRoute postTypeString ->
+            let
+                postType =
+                    Route.stringToPostType postTypeString
+            in
+                case postType of
+                    UnknownPost ->
+                        ( model, Route.modifyUrl NotFoundRoute )
+
+                    _ ->
+                        let
+                            initialNewPostData =
+                                NewPost.initialModel model.apiBase model.sessionUser postType
+                        in
+                            ( { model | newPostData = initialNewPostData }, Cmd.none )
 
         UserRoute userId ->
             ( model, Cmd.none )
@@ -123,7 +149,7 @@ update msg model =
             in
                 ( { model | sessionUser = sessionUser }, cmd )
 
-        Model.OnLoginMsg subMsg ->
+        OnLoginMsg subMsg ->
             let
                 ( ( loginModel, cmd ), msgFromPage ) =
                     Login.update subMsg model.loginData
@@ -136,7 +162,14 @@ update msg model =
                         Login.SetSession sessionUser ->
                             { model | sessionUser = Just sessionUser }
             in
-                ( { newModel | loginData = loginModel }, Cmd.map Model.OnLoginMsg cmd )
+                ( { newModel | loginData = loginModel }, Cmd.map OnLoginMsg cmd )
+
+        OnNewPostMsg subMsg ->
+            let
+                ( ( newPostModel, cmd ), msgFromPage ) =
+                    NewPost.update subMsg model.newPostData
+            in
+                ( { model | newPostData = newPostModel }, Cmd.map OnNewPostMsg cmd )
 
 
 view : Model -> Html Msg
@@ -170,8 +203,18 @@ page model =
         PostRoute id ->
             Posts.itemView model model.currentPost
 
-        NewPostRoute _ ->
-            Debug.crash "TODO"
+        NewPostRoute postTypeString ->
+            let
+                postType =
+                    Route.stringToPostType postTypeString
+            in
+                case postType of
+                    UnknownPost ->
+                        NotFound.view
+
+                    _ ->
+                        NewPost.view model.newPostData
+                            |> Html.Styled.map OnNewPostMsg
 
         UserRoute _ ->
             Debug.crash "TODO"

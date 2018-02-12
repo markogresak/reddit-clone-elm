@@ -53,9 +53,9 @@ view model =
                     ]
                     [ apiErrors model.errors
                     , authLabel isError [ for "username" ] [ text "Username" ]
-                    , authInput isError [ type_ "text", name "username", onInput OnUsernameChange ] []
+                    , authInput isError [ type_ "text", name "username", onInput OnUsernameChange ]
                     , authLabel isError [ for "password" ] [ text "Password" ]
-                    , authInput isError [ type_ "password", name "password", onInput OnPasswordChange ] []
+                    , authInput isError [ type_ "password", name "password", onInput OnPasswordChange ]
                     , authLabel isError
                         [ css [ marginBottom (px authInputMarginBottom) ] ]
                         [ input
@@ -138,7 +138,7 @@ authLabel isError attributes =
         )
 
 
-authInput : Bool -> List (Attribute msg) -> List (Html msg) -> Html msg
+authInput : Bool -> List (Attribute msg) -> Html msg
 authInput isError attributes =
     input
         (css
@@ -151,6 +151,7 @@ authInput isError attributes =
             ]
             :: attributes
         )
+        []
 
 
 isErrorColor : Bool -> Color

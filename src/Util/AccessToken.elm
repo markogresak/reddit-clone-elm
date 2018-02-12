@@ -26,8 +26,8 @@ loginRequestSessionDecoder =
 
 
 withAccessToken : Maybe Session -> RequestBuilder a -> RequestBuilder a
-withAccessToken maybeToken builder =
-    case maybeToken of
+withAccessToken maybeSession builder =
+    case maybeSession of
         Just { accessToken } ->
             builder
                 |> withHeader "Authorization" ("Bearer " ++ accessToken)

@@ -19,6 +19,18 @@ type alias LoginModel =
     }
 
 
+type alias NewPostModel =
+    { postType : PostType
+    , title : String
+    , url : Maybe String
+    , text : Maybe String
+    , errors : List String
+    , apiBase : ApiBase
+    , session : Maybe Session
+    , isLoading : Bool
+    }
+
+
 type alias Model =
     { route : Route
     , apiBase : ApiBase
@@ -27,6 +39,7 @@ type alias Model =
     , currentPost : WebData Post
     , sessionUser : Maybe Session
     , loginData : LoginModel
+    , newPostData : NewPostModel
     }
 
 
@@ -55,13 +68,6 @@ type alias Post =
     , submittedAt : Date
     , user : User
     , comments : List Comment
-    }
-
-
-type alias NewPost =
-    { title : String
-    , url : Maybe String
-    , text : Maybe String
     }
 
 
@@ -114,6 +120,7 @@ type Msg
     | SetSession (Maybe Session)
     | SetCurrentTime (Maybe Date)
     | OnLoginMsg LoginMsg
+    | OnNewPostMsg NewPostMsg
 
 
 type LoginMsg
@@ -122,3 +129,11 @@ type LoginMsg
     | OnPasswordChange String
     | OnRememberMeChange Bool
     | OnLoginCompleted (Result Http.Error Session)
+
+
+type NewPostMsg
+    = OnNewPostSubmit
+    | OnTitleChange String
+    | OnUrlChange String
+    | OnTextChange String
+    | OnAddNewPostCompleted (Result Http.Error Post)

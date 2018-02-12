@@ -1,4 +1,4 @@
-module Request.Post exposing (list, get)
+module Request.Post exposing (list, get, create)
 
 import Http
 import Json.Decode as Decode
@@ -8,6 +8,8 @@ import Json.Encode as Encode
 import Json.Encode.Extra exposing (maybe)
 import Model exposing (..)
 import RemoteData
+import HttpBuilder
+import Util.AccessToken exposing (withAccessToken)
 
 
 list : String -> Cmd Msg
@@ -22,6 +24,28 @@ get apiBase postId =
     Http.get (postUrl apiBase postId) postItemDecoder
         |> RemoteData.sendRequest
         |> Cmd.map OnfetchCurrentPost
+
+
+create : String -> Maybe Session -> NewPostModel -> Http.Request Post
+create apiBase session newPostModel =
+    let
+        post =
+            Encode.object
+                [ ( "title", Encode.string newPostModel.title )
+                , ( "url", maybe Encode.string newPostModel.url )
+                , ( "text", maybe Encode.string newPostModel.text )
+                ]
+
+        body =
+            Encode.object [ ( "post", post ) ]
+                |> Http.jsonBody
+    in
+        postsUrl apiBase
+            |> HttpBuilder.post
+            |> withAccessToken session
+            |> HttpBuilder.withBody body
+            |> HttpBuilder.withExpect (Http.expectJson (Decode.at [ "data" ] postDecoder))
+            |> HttpBuilder.toRequest
 
 
 postsUrl : String -> String
@@ -82,15 +106,3 @@ commentDecoder =
         |> required "parent_comment_id" (Decode.nullable Decode.int)
         |> optional "user_comment_rating" Decode.int 0
         |> required "user" postUserDecoder
-
-
-newPostEncoder : NewPost -> Encode.Value
-newPostEncoder newPost =
-    let
-        post =
-            [ ( "title", Encode.string newPost.title )
-            , ( "url", maybe Encode.string newPost.url )
-            , ( "text", maybe Encode.string newPost.text )
-            ]
-    in
-        Encode.object [ ( "post", Encode.object post ) ]

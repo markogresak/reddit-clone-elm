@@ -38,10 +38,10 @@ routeToString route =
             "/"
 
         PostRoute postId ->
-            "posts/" ++ (toString postId)
+            "/posts/" ++ (toString postId)
 
         NewPostRoute postType ->
-            "posts/new/" ++ postType
+            "/posts/new/" ++ postType
 
         UserRoute userId ->
             "/users/" ++ (toString userId)
@@ -56,15 +56,15 @@ routeToString route =
             "/register"
 
         NotFoundRoute ->
-            ""
+            "/not-found"
 
 
 matchers : Parser (Route -> a) a
 matchers =
     oneOf
         [ map PostsRoute top
+        , map NewPostRoute (s "posts" </> s "new" </> string)
         , map PostRoute (s "posts" </> int)
-        , map NewPostRoute (s "posts/new" </> string)
         , map UserRoute (s "users" </> int)
         , map LoginRoute (s "login")
         , map LogoutRoute (s "logout")
