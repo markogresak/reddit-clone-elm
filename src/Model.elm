@@ -2,16 +2,31 @@ module Model exposing (..)
 
 import Date exposing (Date)
 import RemoteData exposing (WebData)
-import Json.Decode as Decode exposing (Value)
+import Http
+
+
+type alias ApiBase =
+    String
+
+
+type alias LoginModel =
+    { username : String
+    , password : String
+    , rememberMe : Bool
+    , errors : List String
+    , apiBase : ApiBase
+    , isLoading : Bool
+    }
 
 
 type alias Model =
     { route : Route
-    , apiBase : String
+    , apiBase : ApiBase
     , now : Maybe Date
     , posts : WebData (List Post)
     , currentPost : WebData Post
     , sessionUser : Maybe Session
+    , loginData : LoginModel
     }
 
 
@@ -70,6 +85,7 @@ type alias Session =
     { id : Int
     , username : String
     , accessToken : String
+    , rememberMe : Bool
     }
 
 
@@ -95,6 +111,14 @@ type Msg
     | OnfetchPosts (WebData (List Post))
     | OnfetchCurrentPost (WebData Post)
     | OnLocationChange Route
-    | OnSessionChange (Maybe Session)
-      -- | OnPostSave (Result Http.Error Post)
+    | SetSession (Maybe Session)
     | SetCurrentTime (Maybe Date)
+    | OnLoginMsg LoginMsg
+
+
+type LoginMsg
+    = OnLoginSubmit
+    | OnUsernameChange String
+    | OnPasswordChange String
+    | OnRememberMeChange Bool
+    | OnLoginCompleted (Result Http.Error Session)

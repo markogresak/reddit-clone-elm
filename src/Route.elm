@@ -77,6 +77,6 @@ parseLocation location =
     Maybe.withDefault NotFoundRoute (parsePath matchers location)
 
 
-modifyUrl : Route -> Cmd Msg
+modifyUrl : Route -> Cmd msg
 modifyUrl =
     routeToString >> Navigation.modifyUrl

@@ -122,3 +122,13 @@ contentWidth =
 menuHeight : Float
 menuHeight =
     40
+
+
+authFormWidth : Float
+authFormWidth =
+    220
+
+
+authInputMarginBottom : Float
+authInputMarginBottom =
+    12
