@@ -85,6 +85,7 @@ type Route
     | NewPostRoute String
     | UserRoute UserId
     | LoginRoute
+    | LogoutRoute
     | RegisterRoute
     | NotFoundRoute
 

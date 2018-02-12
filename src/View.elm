@@ -49,6 +49,9 @@ page model =
         LoginRoute ->
             Debug.crash "TODO"
 
+        LogoutRoute ->
+            text ""
+
         RegisterRoute ->
             Debug.crash "TODO"
 

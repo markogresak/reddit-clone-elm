@@ -49,6 +49,9 @@ routeToString route =
         LoginRoute ->
             "/login"
 
+        LogoutRoute ->
+            "/logout"
+
         RegisterRoute ->
             "/register"
 
@@ -64,6 +67,7 @@ matchers =
         , map NewPostRoute (s "posts/new" </> string)
         , map UserRoute (s "users" </> int)
         , map LoginRoute (s "login")
+        , map LogoutRoute (s "logout")
         , map RegisterRoute (s "register")
         ]
 

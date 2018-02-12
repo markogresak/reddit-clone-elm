@@ -22,7 +22,7 @@ view model =
                                 []
                                 [ text sessionUser.username ]
                             ]
-                        , linkTo "#"
+                        , linkTo (routeToString LogoutRoute)
                             []
                             [ text "Logout" ]
                         ]

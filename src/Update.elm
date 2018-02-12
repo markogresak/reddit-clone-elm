@@ -6,6 +6,7 @@ import Route exposing (parseLocation, modifyUrl)
 import Navigation exposing (Location)
 import Date exposing (Date)
 import Task
+import Util.Ports as Ports
 
 
 getCurrentDate : Cmd Msg
@@ -30,6 +31,14 @@ initLocationState route model =
 
         LoginRoute ->
             ( model, Cmd.none )
+
+        LogoutRoute ->
+            ( { model | sessionUser = Nothing }
+            , Cmd.batch
+                [ Ports.storeSession Nothing
+                , Route.modifyUrl PostsRoute
+                ]
+            )
 
         RegisterRoute ->
             ( model, Cmd.none )
