@@ -2,7 +2,7 @@ module Update exposing (..)
 
 import Model exposing (..)
 import Request.Post as Post
-import Route exposing (parseLocation)
+import Route exposing (parseLocation, modifyUrl)
 import Navigation exposing (Location)
 import Date exposing (Date)
 import Task
@@ -13,9 +13,9 @@ getCurrentDate =
     Task.perform (Just >> SetCurrentTime) Date.now
 
 
-initLocationState : Location -> Model -> ( Model, Cmd Msg )
-initLocationState location model =
-    case (Route.parseLocation location) of
+initLocationState : Route -> Model -> ( Model, Cmd Msg )
+initLocationState route model =
+    case route of
         PostsRoute ->
             ( model, Post.list model.apiBase )
 
@@ -41,8 +41,8 @@ initLocationState location model =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        OnLocationChange location ->
-            initLocationState location { model | history = location :: model.history, route = parseLocation location }
+        OnLocationChange route ->
+            initLocationState route { model | route = route }
 
         NavigateTo route ->
             ( model, Navigation.newUrl route )
@@ -55,3 +55,13 @@ update msg model =
 
         OnfetchCurrentPost response ->
             ( { model | currentPost = response }, getCurrentDate )
+
+        OnSessionChange sessionUser ->
+            let
+                cmd =
+                    if model.sessionUser /= Nothing && sessionUser == Nothing then
+                        Route.modifyUrl PostsRoute
+                    else
+                        Cmd.none
+            in
+                ( { model | sessionUser = sessionUser }, cmd )

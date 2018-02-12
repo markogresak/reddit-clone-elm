@@ -1,30 +1,17 @@
 module Model exposing (..)
 
 import Date exposing (Date)
-import Navigation exposing (Location)
 import RemoteData exposing (WebData)
+import Json.Decode as Decode exposing (Value)
 
 
 type alias Model =
     { route : Route
-    , history : List Location
     , apiBase : String
     , now : Maybe Date
     , posts : WebData (List Post)
     , currentPost : WebData Post
-    , currentUser : User
-    }
-
-
-initialModel : Route -> String -> Model
-initialModel route apiBase =
-    { route = route
-    , history = []
-    , apiBase = apiBase
-    , now = Nothing
-    , posts = RemoteData.Loading
-    , currentPost = RemoteData.Loading
-    , currentUser = { id = 123, username = "kek" }
+    , sessionUser : Maybe Session
     }
 
 
@@ -79,6 +66,13 @@ type alias Comment =
     }
 
 
+type alias Session =
+    { id : Int
+    , username : String
+    , accessToken : String
+    }
+
+
 type PostType
     = LinkPost
     | TextPost
@@ -99,6 +93,7 @@ type Msg
     = NavigateTo String
     | OnfetchPosts (WebData (List Post))
     | OnfetchCurrentPost (WebData Post)
-    | OnLocationChange Location
+    | OnLocationChange Route
+    | OnSessionChange (Maybe Session)
       -- | OnPostSave (Result Http.Error Post)
     | SetCurrentTime (Maybe Date)

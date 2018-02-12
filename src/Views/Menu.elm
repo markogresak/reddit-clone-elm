@@ -12,41 +12,34 @@ import Views.LinkTo exposing (linkTo)
 view : Model -> Html Msg
 view model =
     let
-        userId =
-            123
-
-        username =
-            "kek"
-
-        isUserLoggedIn =
-            True
-
         menuRightLinks =
-            if isUserLoggedIn then
-                span []
-                    [ span [ css [ marginRight (px 8) ] ]
-                        [ text "Logged in as "
-                        , linkTo (routeToString (UserRoute userId))
+            case model.sessionUser of
+                Just sessionUser ->
+                    span []
+                        [ span [ css [ marginRight (px 8) ] ]
+                            [ text "Logged in as "
+                            , linkTo (routeToString (UserRoute sessionUser.id))
+                                []
+                                [ text sessionUser.username ]
+                            ]
+                        , linkTo "#"
                             []
-                            [ text username ]
+                            [ text "Logout" ]
                         ]
-                    , linkTo "#"
-                        []
-                        [ text "Logout" ]
-                    ]
-            else
-                div []
-                    [ span [ css [ marginRight (px 16) ] ]
-                        [ linkTo (routeToString RegisterRoute)
-                            []
-                            [ text "Register" ]
+
+                Nothing ->
+                    div []
+                        [ span [ css [ marginRight (px 16) ] ]
+                            [ linkTo (routeToString RegisterRoute)
+                                []
+                                [ text "Register" ]
+                            ]
+                        , span []
+                            [ linkTo (routeToString LoginRoute)
+                                []
+                                [ text "Login" ]
+                            ]
                         ]
-                    , span []
-                        [ linkTo (routeToString LoginRoute)
-                            []
-                            [ text "Login" ]
-                        ]
-                    ]
     in
         div
             [ css

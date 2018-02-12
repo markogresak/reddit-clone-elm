@@ -92,8 +92,16 @@ commentActionButtons model comment =
                     ]
                 ]
 
+        currentUserId =
+            case model.sessionUser of
+                Just { id } ->
+                    id
+
+                Nothing ->
+                    -1
+
         ownCommentActions =
-            if comment.user.id == model.currentUser.id then
+            if comment.user.id == currentUserId then
                 [ span []
                     [ actionLink [ text "Edit" ]
                     , actionLink [ text "Delete" ]

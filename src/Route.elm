@@ -70,9 +70,9 @@ matchers =
 
 parseLocation : Location -> Route
 parseLocation location =
-    case (parsePath matchers location) of
-        Just route ->
-            route
+    Maybe.withDefault NotFoundRoute (parsePath matchers location)
 
-        Nothing ->
-            NotFoundRoute
+
+modifyUrl : Route -> Cmd Msg
+modifyUrl =
+    routeToString >> Navigation.modifyUrl
