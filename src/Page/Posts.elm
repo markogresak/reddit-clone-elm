@@ -100,17 +100,20 @@ singlePost model currentPost =
                 ]
             ]
             [ postItem model currentPost
-            , div
-                [ css
-                    [ backgroundColor textBlockBackground
-                    , marginTop (px 16)
-                    , marginLeft (px ratingButtonsWidth)
-                    , padding (px 16)
-                    , borderRadius (px 4)
-                    , border3 (px 1) solid textBlockBorder
+            , (String.isEmpty currentPost.text)
+                ? text ""
+              <|
+                div
+                    [ css
+                        [ backgroundColor textBlockBackground
+                        , marginTop (px 16)
+                        , marginLeft (px ratingButtonsWidth)
+                        , padding (px 16)
+                        , borderRadius (px 4)
+                        , border3 (px 1) solid textBlockBorder
+                        ]
                     ]
-                ]
-                [ text currentPost.text ]
+                    [ text currentPost.text ]
             , div [ css [ marginLeft (px ratingButtonsWidth) ] ]
                 (List.concat
                     [ [ div [ css [ marginTop (px 16) ] ]
