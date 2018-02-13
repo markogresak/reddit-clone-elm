@@ -21,6 +21,7 @@ view model =
                             , linkTo (routeToString (UserRoute sessionUser.id))
                                 []
                                 [ text sessionUser.username ]
+                            , text "."
                             ]
                         , linkTo (routeToString LogoutRoute)
                             []
