@@ -71,12 +71,12 @@ ratingColor userRating =
 
 voteButtonColor : Bool -> Int -> Css.Color
 voteButtonColor isDownButton userRating =
-    case userRating of
-        0 ->
-            voteDefaultColor
+    case isDownButton of
+        True ->
+            (userRating == -1) ? voteDownColor <| voteDefaultColor
 
-        _ ->
-            isDownButton ? voteDownColor <| voteUpColor
+        False ->
+            (userRating == 1) ? voteUpColor <| voteDefaultColor
 
 
 textSmSize : Float

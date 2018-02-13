@@ -13,6 +13,7 @@ import Util.AccessToken exposing (localSessionDecoder)
 import Util.Ports as Ports
 import Date exposing (Date)
 import Task
+import Http
 import Request.Post as Post
 import Views.Menu as Menu
 import Page.NotFound as NotFound
@@ -74,10 +75,10 @@ initLocationState : Route -> Model -> ( Model, Cmd Msg )
 initLocationState route model =
     case route of
         PostsRoute ->
-            ( model, Post.list model.apiBase )
+            ( model, Post.list model.apiBase model.sessionUser )
 
         PostRoute postId ->
-            ( model, Post.get model.apiBase postId )
+            ( model, Post.get model.apiBase model.sessionUser postId )
 
         NewPostRoute postTypeString ->
             let
@@ -170,6 +171,60 @@ update msg model =
                     NewPost.update subMsg model.newPostData
             in
                 ( { model | newPostData = newPostModel }, Cmd.map OnNewPostMsg cmd )
+
+        OnRate ratingType id isDownButton userRating ->
+            let
+                rating =
+                    if isDownButton && userRating /= -1 then
+                        -1
+                    else if (not isDownButton) && userRating /= 1 then
+                        1
+                    else
+                        0
+            in
+                case rating of
+                    0 ->
+                        ( model, Cmd.none )
+
+                    _ ->
+                        ( model, Http.send OnRateCompleted (Post.rate model.apiBase model.sessionUser id rating ratingType) )
+
+        OnRateCompleted (Ok rating) ->
+            let
+                nextModel =
+                    case rating.type_ of
+                        PostRating ->
+                            { model
+                                | posts =
+                                    model.posts
+                                        |> RemoteData.withDefault []
+                                        |> List.map (Post.updatePostRating rating)
+                                        |> RemoteData.succeed
+                                , currentPost =
+                                    case model.currentPost of
+                                        RemoteData.Success post ->
+                                            RemoteData.succeed (Post.updatePostRating rating post)
+
+                                        _ ->
+                                            model.currentPost
+                            }
+
+                        CommentRating ->
+                            { model
+                                | currentPost =
+                                    case model.currentPost of
+                                        RemoteData.Success post ->
+                                            RemoteData.succeed
+                                                { post | comments = List.map (Post.updateCommentRating rating) post.comments }
+
+                                        _ ->
+                                            model.currentPost
+                            }
+            in
+                ( nextModel, Cmd.none )
+
+        OnRateCompleted (Err _) ->
+            ( model, Cmd.none )
 
 
 view : Model -> Html Msg

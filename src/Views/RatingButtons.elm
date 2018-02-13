@@ -3,19 +3,20 @@ module Views.RatingButtons exposing (ratingButtons)
 import Css exposing (..)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css)
+import Html.Styled.Events exposing (onClick)
 import StyleVariables exposing (..)
 import Model exposing (..)
 import List exposing (concat)
 import Ternary exposing ((?))
 
 
-voteButton : Int -> Bool -> Bool -> Bool -> Html msg
-voteButton userRating isDownButton isComment isDisabled =
+voteButton : VoteId -> Int -> Bool -> Bool -> Bool -> Html Msg
+voteButton id userRating isDownButton isComment voteNotAllowed =
     let
         arrowSize =
             px (isComment ? 8 <| 10)
 
-        buttonStyle =
+        arrowDirection =
             isDownButton ? borderTop3 <| borderBottom3
     in
         button
@@ -27,16 +28,21 @@ voteButton userRating isDownButton isComment isDisabled =
                 , height (px 0)
                 , borderLeft3 arrowSize solid transparent
                 , borderRight3 arrowSize solid transparent
-                , buttonStyle arrowSize solid (voteButtonColor isDownButton userRating)
-                , cursor (isDisabled ? notAllowed <| pointer)
+                , arrowDirection arrowSize solid (voteButtonColor isDownButton userRating)
+                , cursor (voteNotAllowed ? notAllowed <| pointer)
                 ]
+            , onClick (OnRate (isComment ? CommentRating <| PostRating) id isDownButton userRating)
+            , Html.Styled.Attributes.disabled voteNotAllowed
             ]
             []
 
 
-ratingButtons : Int -> Int -> Bool -> Bool -> Html Msg
-ratingButtons rating userRating isComment isCollapsed =
+ratingButtons : Maybe Session -> VoteId -> Int -> Int -> Bool -> Bool -> Html Msg
+ratingButtons session id rating userRating isComment isCollapsed =
     let
+        voteNotAllowed =
+            session == Nothing
+
         commentStyles : List Css.Style
         commentStyles =
             isComment
@@ -78,7 +84,7 @@ ratingButtons rating userRating isComment isCollapsed =
                     ]
                 )
             ]
-            [ voteButton userRating False isComment False
+            [ voteButton id userRating False isComment voteNotAllowed
             , buttonSpacer
-            , voteButton userRating True isComment False
+            , voteButton id userRating True isComment voteNotAllowed
             ]

@@ -102,7 +102,7 @@ postItem model post =
             , minHeight (px postHeight)
             ]
         ]
-        [ ratingButtons post.rating post.userRating False False
+        [ ratingButtons model.sessionUser post.id post.rating post.userRating False False
         , div
             [ css
                 [ displayFlex

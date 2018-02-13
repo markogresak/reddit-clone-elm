@@ -139,7 +139,7 @@ commentItem model allComments isNested isCollapsed disableNesting comment =
             , firstChild [ marginTop (px 0) ]
             ]
         ]
-        [ ratingButtons comment.rating comment.userRating True False
+        [ ratingButtons model.sessionUser comment.id comment.rating comment.userRating True False
         , div []
             [ commentDetails comment model.now isCollapsed
             , div [ css (isCollapsed ? [ display none ] <| []) ]

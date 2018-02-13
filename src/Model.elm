@@ -71,6 +71,14 @@ type alias Post =
     }
 
 
+type alias Rating =
+    { id : Int
+    , rating : Int
+    , userRating : Int
+    , type_ : RatingType
+    }
+
+
 type alias CommentId =
     Int
 
@@ -101,6 +109,15 @@ type PostType
     | UnknownPost
 
 
+type RatingType
+    = PostRating
+    | CommentRating
+
+
+type alias VoteId =
+    Int
+
+
 type Route
     = PostsRoute
     | PostRoute PostId
@@ -119,6 +136,8 @@ type Msg
     | OnLocationChange Route
     | SetSession (Maybe Session)
     | SetCurrentTime (Maybe Date)
+    | OnRate RatingType VoteId Bool Int
+    | OnRateCompleted (Result Http.Error Rating)
     | OnLoginMsg LoginMsg
     | OnNewPostMsg NewPostMsg
 
