@@ -146,11 +146,6 @@ commentRatingDecoder =
         |> hardcoded CommentRating
 
 
-commentListDecoder : Decode.Decoder (List Comment)
-commentListDecoder =
-    Decode.at [ "data" ] (Decode.list commentDecoder)
-
-
 commentDecoder : Decode.Decoder Comment
 commentDecoder =
     decode Comment

@@ -49,7 +49,7 @@ postTitle post =
                 ]
 
         Nothing ->
-            linkTo (routeToString (PostRoute post.id)) [] [ text post.title ]
+            (linkTo NavigateTo (routeToString (PostRoute post.id)) [] [ text post.title ])
 
 
 details : Post -> Maybe Date -> Html Msg
@@ -72,7 +72,7 @@ details post now =
             ]
             [ span []
                 [ text ("Submitted " ++ submittedAgo ++ " ago by ")
-                , linkTo (routeToString (UserRoute post.user.id))
+                , (linkTo NavigateTo (routeToString (UserRoute post.user.id)))
                     []
                     [ text post.user.username ]
                 ]
@@ -82,7 +82,7 @@ details post now =
 commentCount : Post -> Html Msg
 commentCount post =
     div []
-        [ linkTo (routeToString (PostRoute post.id))
+        [ (linkTo NavigateTo (routeToString (PostRoute post.id)))
             [ css
                 [ fontSize (px textSmSize)
                 , fontWeight bold
@@ -102,7 +102,7 @@ postItem model post =
             , minHeight (px postHeight)
             ]
         ]
-        [ ratingButtons model.sessionUser post.id post.rating post.userRating False False
+        [ ratingButtons model.sessionUser OnRate post.id post.rating post.userRating False False
         , div
             [ css
                 [ displayFlex

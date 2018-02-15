@@ -31,12 +31,27 @@ type alias NewPostModel =
     }
 
 
+type alias CommentFormModel =
+    { commentText : String
+    , showReplyForm : Bool
+    , isEditMode : Bool
+    , isCollapsed : Bool
+    , errors : List String
+    , isLoading : Bool
+    , apiBase : ApiBase
+    , session : Maybe Session
+    , now : Maybe Date
+    , comment : Comment
+    }
+
+
 type alias Model =
     { route : Route
     , apiBase : ApiBase
     , now : Maybe Date
     , posts : WebData (List Post)
     , currentPost : WebData Post
+    , currentPostCommentModels : List CommentFormModel
     , sessionUser : Maybe Session
     , loginData : LoginModel
     , newPostData : NewPostModel
@@ -140,6 +155,7 @@ type Msg
     | OnRateCompleted (Result Http.Error Rating)
     | OnLoginMsg LoginMsg
     | OnNewPostMsg NewPostMsg
+    | OnCommentFormMsg CommentId CommentFormMsg
 
 
 type LoginMsg
@@ -156,3 +172,15 @@ type NewPostMsg
     | OnUrlChange String
     | OnTextChange String
     | OnAddNewPostCompleted (Result Http.Error Post)
+
+
+type CommentFormMsg
+    = OnCommentChange String
+    | OnCommentSubmit
+    | OnReplyClick
+    | OnReplyCancel
+    | OnEditClick
+    | OnDeleteClick
+    | OnCollapseClick
+    | CommentFormMsgNavigateTo String
+    | CommentFormMsgOnRate RatingType VoteId Bool Int

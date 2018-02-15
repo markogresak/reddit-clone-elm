@@ -7,24 +7,14 @@ import StyleVariables exposing (..)
 import Model exposing (..)
 import Route exposing (..)
 import RemoteData exposing (WebData)
+import Ternary exposing ((?))
 import Views.LinkTo exposing (linkTo)
 import Views.PostItem exposing (postItem)
-import Views.CommentItem exposing (commentItem)
-import Ternary exposing ((?))
+import Views.CommentItem as CommentItem
 
 
 listView : Model -> WebData (List Post) -> Html Msg
 listView model response =
-    maybeView model response postList
-
-
-itemView : Model -> WebData Post -> Html Msg
-itemView model response =
-    maybeView model response singlePost
-
-
-maybeView : Model -> WebData data -> (Model -> data -> Html Msg) -> Html Msg
-maybeView model response renderData =
     case response of
         RemoteData.NotAsked ->
             text ""
@@ -32,8 +22,24 @@ maybeView model response renderData =
         RemoteData.Loading ->
             text "Loading..."
 
-        RemoteData.Success data ->
-            renderData model data
+        RemoteData.Success posts ->
+            postList model posts
+
+        RemoteData.Failure error ->
+            text (toString error)
+
+
+itemView : Model -> WebData Post -> Html Msg
+itemView model response =
+    case response of
+        RemoteData.NotAsked ->
+            text ""
+
+        RemoteData.Loading ->
+            text "Loading..."
+
+        RemoteData.Success currentPost ->
+            singlePost model currentPost
 
         RemoteData.Failure error ->
             text (toString error)
@@ -45,7 +51,7 @@ newPostButton postType buttonText =
         [ css
             [ marginRight (px 10) ]
         ]
-        [ linkTo (routeToString (NewPostRoute (postTypeToString postType)))
+        [ (linkTo NavigateTo (routeToString (NewPostRoute (postTypeToString postType))))
             []
             [ button [] [ text buttonText ]
             ]
@@ -81,16 +87,30 @@ postList model posts =
         ]
 
 
-commentForm : Html Msg
-commentForm =
-    div [] []
-
-
 singlePost : Model -> Post -> Html Msg
 singlePost model currentPost =
     let
         topLevelComments =
-            List.filter (\c -> c.parentCommentId == Nothing) currentPost.comments
+            List.filter (\commentModel -> commentModel.comment.parentCommentId == Nothing) model.currentPostCommentModels
+                |> List.map
+                    (\m ->
+                        CommentItem.view model.currentPostCommentModels False False m
+                            |> Html.Styled.map (OnCommentFormMsg m.comment.id)
+                    )
+
+        comments =
+            div [ css [ marginLeft (px ratingButtonsWidth) ] ]
+                (List.concat
+                    [ -- [ div [ css [ marginTop (px 16) ] ]
+                      --         [ strong []
+                      --             [ text ((toString currentPost.commentCount) ++ " comments") ]
+                      --         , hr [] []
+                      --         ]
+                      --   , CommentItem.commentForm ""
+                      --   ]
+                      topLevelComments
+                    ]
+                )
     in
         div
             [ css
@@ -114,16 +134,5 @@ singlePost model currentPost =
                         ]
                     ]
                     [ text currentPost.text ]
-            , div [ css [ marginLeft (px ratingButtonsWidth) ] ]
-                (List.concat
-                    [ [ div [ css [ marginTop (px 16) ] ]
-                            [ strong []
-                                [ text ((toString currentPost.commentCount) ++ " comments") ]
-                            , hr [] []
-                            ]
-                      , commentForm
-                      ]
-                    , List.map (commentItem model currentPost.comments False False False) topLevelComments
-                    ]
-                )
+            , comments
             ]

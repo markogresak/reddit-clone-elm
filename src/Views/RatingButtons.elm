@@ -10,8 +10,8 @@ import List exposing (concat)
 import Ternary exposing ((?))
 
 
-voteButton : VoteId -> Int -> Bool -> Bool -> Bool -> Html Msg
-voteButton id userRating isDownButton isComment voteNotAllowed =
+voteButton : (RatingType -> VoteId -> Bool -> Int -> m) -> VoteId -> Int -> Bool -> Bool -> Bool -> Html m
+voteButton msg id userRating isDownButton isComment voteNotAllowed =
     let
         arrowSize =
             px (isComment ? 8 <| 10)
@@ -31,14 +31,22 @@ voteButton id userRating isDownButton isComment voteNotAllowed =
                 , arrowDirection arrowSize solid (voteButtonColor isDownButton userRating)
                 , cursor (voteNotAllowed ? notAllowed <| pointer)
                 ]
-            , onClick (OnRate (isComment ? CommentRating <| PostRating) id isDownButton userRating)
+            , onClick (msg (isComment ? CommentRating <| PostRating) id isDownButton userRating)
             , Html.Styled.Attributes.disabled voteNotAllowed
             ]
             []
 
 
-ratingButtons : Maybe Session -> VoteId -> Int -> Int -> Bool -> Bool -> Html Msg
-ratingButtons session id rating userRating isComment isCollapsed =
+ratingButtons :
+    Maybe Session
+    -> (RatingType -> VoteId -> Bool -> Int -> m)
+    -> VoteId
+    -> Int
+    -> Int
+    -> Bool
+    -> Bool
+    -> Html m
+ratingButtons session msg id rating userRating isComment isCollapsed =
     let
         voteNotAllowed =
             session == Nothing
@@ -84,7 +92,7 @@ ratingButtons session id rating userRating isComment isCollapsed =
                     ]
                 )
             ]
-            [ voteButton id userRating False isComment voteNotAllowed
+            [ voteButton msg id userRating False isComment voteNotAllowed
             , buttonSpacer
-            , voteButton id userRating True isComment voteNotAllowed
+            , voteButton msg id userRating True isComment voteNotAllowed
             ]

@@ -12,6 +12,8 @@ import RemoteData exposing (WebData)
 import Util.AccessToken exposing (localSessionDecoder)
 import Util.Ports as Ports
 import Date exposing (Date)
+import Ternary exposing ((?))
+import List.Extra
 import Task
 import Http
 import Request.Post as Post
@@ -20,6 +22,7 @@ import Page.NotFound as NotFound
 import Page.Login as Login
 import Page.Posts as Posts
 import Page.NewPost as NewPost
+import Views.CommentItem as CommentItem
 
 
 decodeSession : Value -> Maybe Session
@@ -60,6 +63,7 @@ init value location =
             , now = Nothing
             , posts = RemoteData.Loading
             , currentPost = RemoteData.Loading
+            , currentPostCommentModels = []
             , sessionUser = sessionUser
             , loginData = (Login.initialModel apiBase)
             , newPostData = (NewPost.initialModel apiBase sessionUser newPostType)
@@ -138,7 +142,17 @@ update msg model =
             ( { model | now = date }, Cmd.none )
 
         OnfetchCurrentPost response ->
-            ( { model | currentPost = response }, getCurrentDate )
+            case response of
+                RemoteData.Success currentPost ->
+                    ( { model
+                        | currentPost = response
+                        , currentPostCommentModels = List.map (CommentItem.initialModel model) currentPost.comments
+                      }
+                    , getCurrentDate
+                    )
+
+                _ ->
+                    ( { model | currentPost = response }, Cmd.none )
 
         SetSession sessionUser ->
             let
@@ -171,6 +185,21 @@ update msg model =
                     NewPost.update subMsg model.newPostData
             in
                 ( { model | newPostData = newPostModel }, Cmd.map OnNewPostMsg cmd )
+
+        -- TODO: the sent `id` is wrong, top level id is used instead of the current comment id.
+        OnCommentFormMsg id subMsg ->
+            case (List.Extra.find (\m -> m.comment.id == id) model.currentPostCommentModels) of
+                Just commentFormModel ->
+                    let
+                        ( ( newCommentFormModel, cmd ), msgFromPage ) =
+                            CommentItem.update subMsg commentFormModel
+                    in
+                        ( { model | currentPostCommentModels = List.map (\m -> (m.comment.id == id) ? newCommentFormModel <| m) model.currentPostCommentModels }
+                        , Cmd.map (OnCommentFormMsg id) cmd
+                        )
+
+                Nothing ->
+                    ( model, Cmd.map (OnCommentFormMsg id) Cmd.none )
 
         OnRate ratingType id isDownButton userRating ->
             let

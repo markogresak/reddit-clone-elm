@@ -18,12 +18,12 @@ view model =
                     span []
                         [ span [ css [ marginRight (px 8) ] ]
                             [ text "Logged in as "
-                            , linkTo (routeToString (UserRoute sessionUser.id))
+                            , (linkTo NavigateTo (routeToString (UserRoute sessionUser.id)))
                                 []
                                 [ text sessionUser.username ]
                             , text "."
                             ]
-                        , linkTo (routeToString LogoutRoute)
+                        , (linkTo NavigateTo (routeToString LogoutRoute))
                             []
                             [ text "Logout" ]
                         ]
@@ -31,12 +31,12 @@ view model =
                 Nothing ->
                     div []
                         [ span [ css [ marginRight (px 16) ] ]
-                            [ linkTo (routeToString RegisterRoute)
+                            [ (linkTo NavigateTo (routeToString RegisterRoute))
                                 []
                                 [ text "Register" ]
                             ]
                         , span []
-                            [ linkTo (routeToString LoginRoute)
+                            [ (linkTo NavigateTo (routeToString LoginRoute))
                                 []
                                 [ text "Login" ]
                             ]
@@ -53,7 +53,7 @@ view model =
                 ]
             ]
             [ span [ css [ marginRight auto ] ]
-                [ linkTo (routeToString PostsRoute)
+                [ (linkTo NavigateTo (routeToString PostsRoute))
                     []
                     [ text "Home" ]
                 ]
