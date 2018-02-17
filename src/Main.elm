@@ -80,62 +80,66 @@ getCurrentDate =
 
 initLocationState : Route -> Model -> ( Model, Cmd Msg )
 initLocationState route model =
-    case route of
-        PostsRoute ->
-            ( model, Post.list model.apiBase model.sessionUser )
+    let
+        ( nextModel, cmd ) =
+            case route of
+                PostsRoute ->
+                    ( model, Post.list model.apiBase model.sessionUser )
 
-        PostRoute postId ->
-            ( model, Post.get model.apiBase model.sessionUser postId )
+                PostRoute postId ->
+                    ( model, Post.get model.apiBase model.sessionUser postId )
 
-        NewPostRoute postTypeString ->
-            let
-                postType =
-                    Route.stringToPostType postTypeString
-            in
-                case postType of
-                    UnknownPost ->
-                        ( model, Route.modifyUrl NotFoundRoute )
+                NewPostRoute postTypeString ->
+                    let
+                        postType =
+                            Route.stringToPostType postTypeString
+                    in
+                        case postType of
+                            UnknownPost ->
+                                ( model, Route.modifyUrl NotFoundRoute )
 
-                    _ ->
-                        let
-                            initialNewPostData =
-                                NewPost.initialModel model.apiBase model.sessionUser postType
-                        in
-                            ( { model | newPostData = initialNewPostData }, Cmd.none )
+                            _ ->
+                                let
+                                    initialNewPostData =
+                                        NewPost.initialModel model.apiBase model.sessionUser postType
+                                in
+                                    ( { model | newPostData = initialNewPostData }, Cmd.none )
 
-        UserRoute userId tabType ->
-            let
-                requestCmd =
-                    Request.User.get model.apiBase model.sessionUser userId
+                UserRoute userId tabType ->
+                    let
+                        requestCmd =
+                            Request.User.get model.apiBase model.sessionUser userId
 
-                cmd =
-                    case model.userPage of
-                        RemoteData.Success userPage ->
-                            (userPage.id == userId) ? Cmd.none <| requestCmd
+                        cmd =
+                            case model.userPage of
+                                RemoteData.Success userPage ->
+                                    (userPage.id == userId) ? Cmd.none <| requestCmd
 
-                        _ ->
-                            requestCmd
-            in
-                ( model, cmd )
+                                _ ->
+                                    requestCmd
+                    in
+                        ( model, cmd )
 
-        LoginRoute ->
-            case model.sessionUser of
-                Just sessionUser ->
-                    ( model, Route.modifyUrl PostsRoute )
+                LoginRoute ->
+                    case model.sessionUser of
+                        Just sessionUser ->
+                            ( model, Route.modifyUrl PostsRoute )
 
-                Nothing ->
+                        Nothing ->
+                            ( model, Cmd.none )
+
+                LogoutRoute ->
+                    ( { model | sessionUser = Nothing }
+                    , Cmd.batch [ Ports.storeSession Nothing, Route.modifyUrl PostsRoute ]
+                    )
+
+                RegisterRoute ->
                     ( model, Cmd.none )
 
-        LogoutRoute ->
-            ( { model | sessionUser = Nothing }
-            , Cmd.batch [ Ports.storeSession Nothing, Route.modifyUrl PostsRoute ]
-            )
-
-        RegisterRoute ->
-            ( model, Cmd.none )
-
-        NotFoundRoute ->
-            ( model, Cmd.none )
+                NotFoundRoute ->
+                    ( model, Cmd.none )
+    in
+        ( nextModel, Cmd.batch [ cmd, getCurrentDate ] )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
