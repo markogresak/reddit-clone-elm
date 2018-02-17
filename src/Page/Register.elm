@@ -38,7 +38,8 @@ view model =
             model.passwordConfirmError
                 ? (Html.Styled.small
                     [ css
-                        [ width (px 200)
+                        [ maxWidth (pct 100)
+                        , width (px 200)
                         , color dangerColor
                         , marginTop (px -(authInputMarginBottom / 2))
                         , marginBottom (px authInputMarginBottom)
@@ -65,6 +66,7 @@ view model =
                         , flexDirection column
                         , alignItems center
                         , justifyContent spaceBetween
+                        , maxWidth (pct 100)
                         , width (px authFormWidth)
                         ]
                     ]

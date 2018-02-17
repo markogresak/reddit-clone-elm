@@ -203,7 +203,7 @@ commentForm model withCancelButton =
             ]
             [ form [ onSubmit OnCommentSubmit ]
                 [ textarea
-                    [ css [ width (px 500), height (px 100) ]
+                    [ css [ maxWidth (pct 100), width (px 500), height (px 100) ]
                     , name "text"
                     , id "text"
                     , cols 1
