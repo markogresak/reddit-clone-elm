@@ -101,10 +101,13 @@ createComment apiBase session newCommentModel =
 
         comment =
             Encode.object
-                [ ( "post_id", Encode.int newCommentModel.comment.postId )
-                , ( "text", Encode.string newCommentModel.commentText )
-                , ( "parent_comment_id", Encode.int newCommentModel.comment.id )
-                ]
+                (List.concat
+                    [ [ ( "post_id", Encode.int newCommentModel.comment.postId )
+                      , ( "text", Encode.string newCommentModel.commentText )
+                      ]
+                    , (newCommentModel.comment.id /= -1) ? [ ( "parent_comment_id", Encode.int newCommentModel.comment.id ) ] <| []
+                    ]
+                )
 
         body =
             Encode.object [ ( "comment", comment ) ]

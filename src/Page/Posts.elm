@@ -11,6 +11,7 @@ import Ternary exposing ((?))
 import Views.LinkTo exposing (linkTo)
 import Views.PostItem exposing (postItem)
 import Views.CommentItem as CommentItem
+import List.Extra
 
 
 listView : Model -> WebData (List Post) -> Html Msg
@@ -91,20 +92,28 @@ singlePost : Model -> Post -> Html Msg
 singlePost model currentPost =
     let
         topLevelComments =
-            List.filter (\commentModel -> commentModel.comment.parentCommentId == Nothing) model.currentPostCommentModels
+            List.filter (\m -> m.comment.id /= -1 && m.comment.parentCommentId == Nothing) model.currentPostCommentModels
                 |> List.map (CommentItem.view model.currentPostCommentModels False False False)
+
+        commentForm =
+            case (List.Extra.find (\m -> m.comment.id == -1) model.currentPostCommentModels) of
+                Just newCommentModel ->
+                    (CommentItem.commentForm newCommentModel False) |> CommentItem.mapCommentMsg -1
+
+                Nothing ->
+                    text ""
 
         comments =
             div [ css [ marginLeft (px ratingButtonsWidth) ] ]
                 (List.concat
-                    [ -- [ div [ css [ marginTop (px 16) ] ]
-                      --         [ strong []
-                      --             [ text ((toString currentPost.commentCount) ++ " comments") ]
-                      --         , hr [] []
-                      --         ]
-                      --   , CommentItem.commentForm ""
-                      --   ]
-                      topLevelComments
+                    [ [ div [ css [ marginTop (px 16) ] ]
+                            [ strong []
+                                [ text ((toString currentPost.commentCount) ++ " comments") ]
+                            , hr [] []
+                            ]
+                      , commentForm
+                      ]
+                    , topLevelComments
                     ]
                 )
     in

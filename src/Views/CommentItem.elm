@@ -1,4 +1,4 @@
-module Views.CommentItem exposing (initialModel, view, update, commentForm, ExternalMsg(..))
+module Views.CommentItem exposing (initialModel, view, update, commentForm, ExternalMsg(..), mapCommentMsg)
 
 import Css exposing (..)
 import Html.Styled exposing (..)
@@ -127,11 +127,16 @@ commentActionButtons model comment areHidden =
                 ]
 
 
+mapCommentMsg : CommentId -> Html CommentFormMsg -> Html Msg
+mapCommentMsg id =
+    Html.Styled.map (OnCommentFormMsg id)
+
+
 view : List CommentFormModel -> Bool -> Bool -> Bool -> CommentFormModel -> Html Msg
 view allCommentModels isNested disableNesting hideButtons model =
     let
         mapMsg =
-            Html.Styled.map (OnCommentFormMsg model.comment.id)
+            mapCommentMsg model.comment.id
 
         areActionButtonsHidden =
             model.session == Nothing || model.showReplyForm || hideButtons
@@ -201,9 +206,10 @@ commentForm model withCancelButton =
                     , id "text"
                     , cols 1
                     , rows 1
+                    , value model.commentText
                     , onInput OnCommentChange
                     ]
-                    [ text model.commentText ]
+                    []
                 , div [ css [ marginTop (px 10) ] ]
                     (List.concat
                         [ [ button
@@ -269,6 +275,6 @@ update msg model =
                 ( ( { model | errors = errorMessages, isLoading = False }, Cmd.none ), NoOp )
 
         OnCommentSubmitCompleted (Ok newComment) ->
-            ( ( { model | errors = [], isLoading = False, showReplyForm = False, isEditMode = False }, Cmd.none )
+            ( ( { model | errors = [], isLoading = False, showReplyForm = False, isEditMode = False, commentText = "" }, Cmd.none )
             , (model.isEditMode ? OnEditComment <| OnAddNewComment) newComment
             )

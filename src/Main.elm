@@ -144,12 +144,21 @@ update msg model =
         OnfetchCurrentPost response ->
             case response of
                 RemoteData.Success currentPost ->
-                    ( { model
-                        | currentPost = response
-                        , currentPostCommentModels = List.map (CommentItem.initialModel model) currentPost.comments
-                      }
-                    , getCurrentDate
-                    )
+                    let
+                        newComment =
+                            case model.sessionUser of
+                                Just s ->
+                                    [ Comment -1 "" (Date.fromTime 0) 0 currentPost.id Nothing 0 (User s.id s.username) ]
+
+                                Nothing ->
+                                    []
+                    in
+                        ( { model
+                            | currentPost = response
+                            , currentPostCommentModels = List.map (CommentItem.initialModel model) (newComment ++ currentPost.comments)
+                          }
+                        , getCurrentDate
+                        )
 
                 _ ->
                     ( { model | currentPost = response }, Cmd.none )
@@ -205,7 +214,7 @@ update msg model =
 
                             CommentItem.OnAddNewComment newComment ->
                                 ( { newModel
-                                    | currentPostCommentModels = newModel.currentPostCommentModels ++ [ (CommentItem.initialModel newModel newComment) ]
+                                    | currentPostCommentModels = [ (CommentItem.initialModel newModel newComment) ] ++ newModel.currentPostCommentModels
                                   }
                                 , Cmd.map (OnCommentFormMsg id) cmd
                                 )
