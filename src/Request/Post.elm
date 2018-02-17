@@ -7,6 +7,7 @@ module Request.Post
         , updatePostRating
         , updateCommentRating
         , createComment
+        , deleteComment
         )
 
 import Http
@@ -118,6 +119,13 @@ createComment apiBase session newCommentModel =
             |> HttpBuilder.withBody body
             |> HttpBuilder.withExpect (Http.expectJson (Decode.at [ "data" ] commentDecoder))
             |> HttpBuilder.toRequest
+
+
+deleteComment : String -> Maybe Session -> CommentFormModel -> Http.Request ()
+deleteComment apiBase session newCommentModel =
+    HttpBuilder.delete (commentUrl apiBase newCommentModel.comment.id)
+        |> withAccessToken session
+        |> HttpBuilder.toRequest
 
 
 postsUrl : String -> String

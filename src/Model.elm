@@ -36,6 +36,7 @@ type alias CommentFormModel =
     , showReplyForm : Bool
     , isEditMode : Bool
     , isCollapsed : Bool
+    , isConfirmMode : Bool
     , errors : List String
     , isLoading : Bool
     , apiBase : ApiBase
@@ -156,6 +157,7 @@ type Msg
     | OnLoginMsg LoginMsg
     | OnNewPostMsg NewPostMsg
     | OnCommentFormMsg CommentId CommentFormMsg
+    | OnConfirm Bool
 
 
 type LoginMsg
@@ -179,9 +181,11 @@ type CommentFormMsg
     | OnReplyClick
     | OnReplyCancel
     | OnEditClick
-    | OnDeleteClick
     | OnCollapseClick
+    | OnDeleteClick
+    | OnDeleteConfirm Bool
     | CommentFormMsgNavigateTo String
     | CommentFormMsgOnRate RatingType VoteId Bool Int
     | OnCommentSubmit
     | OnCommentSubmitCompleted (Result Http.Error Comment)
+    | OnCommentDeleteCompleted (Result Http.Error ())

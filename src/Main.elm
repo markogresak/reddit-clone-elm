@@ -113,10 +113,7 @@ initLocationState route model =
 
         LogoutRoute ->
             ( { model | sessionUser = Nothing }
-            , Cmd.batch
-                [ Ports.storeSession Nothing
-                , Route.modifyUrl PostsRoute
-                ]
+            , Cmd.batch [ Ports.storeSession Nothing, Route.modifyUrl PostsRoute ]
             )
 
         RegisterRoute ->
@@ -202,8 +199,28 @@ update msg model =
                         ( ( newCommentFormModel, cmd ), msgFromPage ) =
                             CommentItem.update subMsg commentFormModel
 
-                        newModel =
+                        updatedModel =
                             { model | currentPostCommentModels = List.map (\m -> (m.comment.id == id) ? newCommentFormModel <| m) model.currentPostCommentModels }
+
+                        newModel =
+                            case msgFromPage of
+                                CommentItem.OnAddNewComment newComment ->
+                                    { updatedModel
+                                        | currentPostCommentModels = [ (CommentItem.initialModel updatedModel newComment) ] ++ updatedModel.currentPostCommentModels
+                                    }
+
+                                CommentItem.OnEditComment updatedComment ->
+                                    { updatedModel
+                                        | currentPostCommentModels = List.map (\m -> (m.comment.id == updatedComment.id) ? (CommentItem.initialModel updatedModel updatedComment) <| m) updatedModel.currentPostCommentModels
+                                    }
+
+                                CommentItem.OnDeleteComment id ->
+                                    { updatedModel
+                                        | currentPostCommentModels = List.filter (\m -> m.comment.id /= id) updatedModel.currentPostCommentModels
+                                    }
+
+                                _ ->
+                                    updatedModel
                     in
                         case msgFromPage of
                             CommentItem.CommentFormNavigateTo route ->
@@ -212,25 +229,19 @@ update msg model =
                             CommentItem.CommentFormOnRate ratingType id isDownButton userRating ->
                                 update (OnRate ratingType id isDownButton userRating) newModel
 
-                            CommentItem.OnAddNewComment newComment ->
-                                ( { newModel
-                                    | currentPostCommentModels = [ (CommentItem.initialModel newModel newComment) ] ++ newModel.currentPostCommentModels
-                                  }
-                                , Cmd.map (OnCommentFormMsg id) cmd
-                                )
-
-                            CommentItem.OnEditComment updatedComment ->
-                                ( { newModel
-                                    | currentPostCommentModels = List.map (\m -> (m.comment.id == updatedComment.id) ? (CommentItem.initialModel newModel updatedComment) <| m) newModel.currentPostCommentModels
-                                  }
-                                , Cmd.map (OnCommentFormMsg id) cmd
-                                )
-
                             _ ->
                                 ( newModel, Cmd.map (OnCommentFormMsg id) cmd )
 
                 Nothing ->
                     ( model, Cmd.map (OnCommentFormMsg id) Cmd.none )
+
+        OnConfirm result ->
+            case List.Extra.find .isConfirmMode model.currentPostCommentModels of
+                Just m ->
+                    update (OnCommentFormMsg m.comment.id (OnDeleteConfirm result)) model
+
+                Nothing ->
+                    ( model, Cmd.none )
 
         OnRate ratingType id isDownButton userRating ->
             let
@@ -343,12 +354,20 @@ page model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.batch [ Sub.map SetSession sessionChange ]
+    Sub.batch
+        [ Sub.map SetSession sessionChange
+        , Sub.map OnConfirm onConfirm
+        ]
 
 
 sessionChange : Sub (Maybe Session)
 sessionChange =
     Ports.onSessionChange (Decode.decodeValue localSessionDecoder >> Result.toMaybe)
+
+
+onConfirm : Sub Bool
+onConfirm =
+    Ports.onConfirm (Decode.decodeValue Decode.bool >> Result.withDefault False)
 
 
 main : Program Value Model Msg

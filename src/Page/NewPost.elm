@@ -131,7 +131,7 @@ update msg model =
 
         OnAddNewPostCompleted (Ok newPost) ->
             ( ( { model | errors = [], isLoading = False }
-              , Cmd.batch [ Route.modifyUrl (PostRoute newPost.id) ]
+              , Route.modifyUrl (PostRoute newPost.id)
               )
             , OnAddNewPost newPost
             )

@@ -16,6 +16,7 @@ import Views.LinkTo exposing (linkTo)
 import Views.RatingButtons exposing (ratingButtons)
 import Request.Post
 import Http
+import Util.Ports as Ports
 
 
 initialModel : Model -> Comment -> CommentFormModel
@@ -24,6 +25,7 @@ initialModel model comment =
     , showReplyForm = False
     , isEditMode = False
     , isCollapsed = False
+    , isConfirmMode = False
     , errors = []
     , isLoading = False
     , apiBase = model.apiBase
@@ -229,6 +231,7 @@ type ExternalMsg
     = NoOp
     | OnAddNewComment Comment
     | OnEditComment Comment
+    | OnDeleteComment CommentId
     | CommentFormNavigateTo String
     | CommentFormOnRate RatingType VoteId Bool Int
 
@@ -247,9 +250,6 @@ update msg model =
 
         OnEditClick ->
             ( ( { model | showReplyForm = True, isEditMode = True, commentText = model.comment.text }, Cmd.none ), NoOp )
-
-        OnDeleteClick ->
-            Debug.crash "TODO: CommentItem.OnDeleteClick"
 
         OnCollapseClick ->
             ( ( { model | isCollapsed = not model.isCollapsed }, Cmd.none ), NoOp )
@@ -278,3 +278,28 @@ update msg model =
             ( ( { model | errors = [], isLoading = False, showReplyForm = False, isEditMode = False, commentText = "" }, Cmd.none )
             , (model.isEditMode ? OnEditComment <| OnAddNewComment) newComment
             )
+
+        OnDeleteClick ->
+            ( ( { model | isConfirmMode = True }, Ports.confirm "Are you sure you wish to delete this comment?" ), NoOp )
+
+        OnDeleteConfirm result ->
+            let
+                nextModel =
+                    { model | isConfirmMode = False }
+            in
+                case result of
+                    True ->
+                        ( ( nextModel
+                          , Http.send OnCommentDeleteCompleted (Request.Post.deleteComment model.apiBase model.session model)
+                          )
+                        , NoOp
+                        )
+
+                    False ->
+                        ( ( nextModel, Cmd.none ), NoOp )
+
+        OnCommentDeleteCompleted (Err _) ->
+            ( ( model, Cmd.none ), NoOp )
+
+        OnCommentDeleteCompleted (Ok _) ->
+            ( ( model, Cmd.none ), OnDeleteComment model.comment.id )

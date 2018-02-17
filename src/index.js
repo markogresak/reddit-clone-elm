@@ -26,6 +26,10 @@ app.ports.storeSession.subscribe(function(sessionData) {
   }
 });
 
+app.ports.confirm.subscribe(function(msg) {
+  app.ports.onConfirm.send(confirm(msg));
+});
+
 window.addEventListener("storage", function(e) {
   if ((e.storageArea === localStorage || e.storageArea === sessionStorage) && e.key === USER_TOKEN_KEY_NAME) {
     app.ports.onSessionChange.send(e.newValue);
