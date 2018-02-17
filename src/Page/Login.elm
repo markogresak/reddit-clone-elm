@@ -1,4 +1,4 @@
-module Page.Login exposing (initialModel, view, update, ExternalMsg(..))
+module Page.Login exposing (initialModel, view, update, ExternalMsg(..), authLabel, authInput)
 
 import Css exposing (..)
 import Html.Styled exposing (..)
@@ -23,6 +23,7 @@ initialModel apiBase =
     , errors = []
     , apiBase = apiBase
     , isLoading = False
+    , registerSuccess = False
     }
 
 
@@ -31,6 +32,14 @@ view model =
     let
         isError =
             (List.length model.errors) > 0
+
+        registerSuccessText =
+            model.registerSuccess
+                ? (strong [ css [ margin2 (px 16) (px 0), color successColor ] ]
+                    [ text "The registration was successful. You can now login with the chosen username and password." ]
+                  )
+            <|
+                text ""
     in
         div
             [ css
@@ -52,6 +61,7 @@ view model =
                         ]
                     ]
                     [ apiErrors model.errors
+                    , registerSuccessText
                     , authLabel isError [ for "username" ] [ text "Username" ]
                     , authInput isError [ type_ "text", name "username", onInput OnUsernameChange ]
                     , authLabel isError [ for "password" ] [ text "Password" ]

@@ -22,6 +22,7 @@ import Views.Menu as Menu
 import Views.CommentItem as CommentItem
 import Page.NotFound as NotFound
 import Page.Login as Login
+import Page.Register as Register
 import Page.Posts as Posts
 import Page.NewPost as NewPost
 import Page.User as User
@@ -68,6 +69,7 @@ init value location =
             , currentPostCommentModels = []
             , sessionUser = sessionUser
             , loginData = (Login.initialModel apiBase)
+            , registerData = (Register.initialModel apiBase)
             , newPostData = (NewPost.initialModel apiBase sessionUser newPostType)
             , userPage = RemoteData.Loading
             }
@@ -146,7 +148,23 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         OnLocationChange route ->
-            initLocationState route { model | route = route }
+            let
+                updatedModel =
+                    { model | route = route }
+
+                loginData =
+                    model.loginData
+
+                newModel =
+                    case route of
+                        LoginRoute ->
+                            updatedModel
+
+                        _ ->
+                            -- Reset registerSuccess state
+                            { updatedModel | loginData = { loginData | registerSuccess = False } }
+            in
+                initLocationState route newModel
 
         NavigateTo route ->
             ( model, Navigation.newUrl route )
@@ -203,6 +221,24 @@ update msg model =
                             { model | sessionUser = Just sessionUser }
             in
                 ( { newModel | loginData = loginModel }, Cmd.map OnLoginMsg cmd )
+
+        Model.OnRegisterMsg subMsg ->
+            let
+                ( ( registerModel, cmd ), msgFromPage ) =
+                    Register.update subMsg model.registerData
+
+                newModel =
+                    { model | registerData = registerModel }
+
+                loginData =
+                    model.loginData
+            in
+                case msgFromPage of
+                    Register.OnRegisterSuccess ->
+                        update (NavigateTo (Route.routeToString LoginRoute)) { newModel | loginData = { loginData | registerSuccess = True } }
+
+                    _ ->
+                        ( newModel, Cmd.map OnRegisterMsg cmd )
 
         OnNewPostMsg subMsg ->
             let
@@ -368,7 +404,8 @@ page model =
             text ""
 
         RegisterRoute ->
-            Debug.crash "TODO: RegisterRoute"
+            Register.view model.registerData
+                |> Html.Styled.map OnRegisterMsg
 
         NotFoundRoute ->
             NotFound.view

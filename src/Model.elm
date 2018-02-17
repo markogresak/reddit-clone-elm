@@ -16,6 +16,18 @@ type alias LoginModel =
     , errors : List String
     , apiBase : ApiBase
     , isLoading : Bool
+    , registerSuccess : Bool
+    }
+
+
+type alias RegisterModel =
+    { username : String
+    , password : String
+    , passwordConfirm : String
+    , errors : List String
+    , apiBase : ApiBase
+    , isLoading : Bool
+    , passwordConfirmError : Bool
     }
 
 
@@ -55,6 +67,7 @@ type alias Model =
     , currentPostCommentModels : List CommentFormModel
     , sessionUser : Maybe Session
     , loginData : LoginModel
+    , registerData : RegisterModel
     , newPostData : NewPostModel
     , userPage : WebData UserPage
     }
@@ -171,6 +184,7 @@ type Msg
     | OnRate RatingType VoteId Bool Int
     | OnRateCompleted (Result Http.Error Rating)
     | OnLoginMsg LoginMsg
+    | OnRegisterMsg RegisterMsg
     | OnNewPostMsg NewPostMsg
     | OnCommentFormMsg CommentId CommentFormMsg
     | OnConfirm Bool
@@ -182,6 +196,14 @@ type LoginMsg
     | OnPasswordChange String
     | OnRememberMeChange Bool
     | OnLoginCompleted (Result Http.Error Session)
+
+
+type RegisterMsg
+    = OnRegisterSubmit
+    | OnRegisterUsernameChange String
+    | OnRegisterPasswordChange String
+    | OnRegisterPasswordConfirmChange String
+    | OnRegisterCompleted (Result Http.Error ())
 
 
 type NewPostMsg
