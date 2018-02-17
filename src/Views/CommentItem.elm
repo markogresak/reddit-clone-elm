@@ -77,8 +77,8 @@ commentDetails comment now isCollapsed =
             ]
 
 
-commentActionButtons : CommentFormModel -> Comment -> Html CommentFormMsg
-commentActionButtons model comment =
+commentActionButtons : CommentFormModel -> Comment -> Bool -> Html CommentFormMsg
+commentActionButtons model comment areHidden =
     let
         actionLink msg =
             span
@@ -112,21 +112,27 @@ commentActionButtons model comment =
             else
                 []
     in
-        span []
-            [ span []
-                (List.concat
-                    [ [ actionLink OnReplyClick [ text "Reply" ] ]
-                    , ownCommentActions
-                    ]
-                )
-            ]
+        areHidden
+            ? text ""
+        <|
+            span []
+                [ span []
+                    (List.concat
+                        [ [ actionLink OnReplyClick [ text "Reply" ] ]
+                        , ownCommentActions
+                        ]
+                    )
+                ]
 
 
-view : List CommentFormModel -> Bool -> Bool -> CommentFormModel -> Html CommentFormMsg
-view allCommentModels isNested disableNesting model =
+view : List CommentFormModel -> Bool -> Bool -> Bool -> CommentFormModel -> Html Msg
+view allCommentModels isNested disableNesting hideButtons model =
     let
-        allComments =
-            List.map .comment allCommentModels
+        mapMsg =
+            Html.Styled.map (OnCommentFormMsg model.comment.id)
+
+        areActionButtonsHidden =
+            model.session == Nothing || model.showReplyForm || hideButtons
     in
         div
             [ css
@@ -135,14 +141,17 @@ view allCommentModels isNested disableNesting model =
                 , firstChild [ marginTop (px 0) ]
                 ]
             ]
-            [ ratingButtons model.session CommentFormMsgOnRate model.comment.id model.comment.rating model.comment.userRating True model.isCollapsed
+            [ (ratingButtons model.session CommentFormMsgOnRate model.comment.id model.comment.rating model.comment.userRating True model.isCollapsed) |> mapMsg
             , div []
-                [ commentDetails model.comment model.now model.isCollapsed
+                [ (commentDetails model.comment model.now model.isCollapsed) |> mapMsg
                 , div [ css (model.isCollapsed ? [ display none ] <| []) ]
                     [ div []
-                        [ div [] [ (model.showReplyForm && model.isEditMode) ? (commentForm model True) <| span [] [ text model.comment.text ] ]
-                        , commentActionButtons model model.comment
-                        , (model.showReplyForm && not model.isEditMode) ? (commentForm model True) <| text ""
+                        [ (div []
+                            [ (model.showReplyForm && model.isEditMode) ? (commentForm model True) <| span [] [ text model.comment.text ] ]
+                          )
+                            |> mapMsg
+                        , (commentActionButtons model model.comment areActionButtonsHidden) |> mapMsg
+                        , (model.showReplyForm && not model.isEditMode) ? ((commentForm model True) |> mapMsg) <| text ""
                         , disableNesting
                             ? text ""
                           <|
@@ -152,8 +161,8 @@ view allCommentModels isNested disableNesting model =
                                     , paddingLeft (px 16)
                                     ]
                                 ]
-                                (List.filter (\c -> (Maybe.withDefault 0 c.parentCommentId) == model.comment.id) allComments
-                                    |> List.map (\c -> view allCommentModels True disableNesting { model | comment = c })
+                                (List.filter (\m -> (Maybe.withDefault 0 m.comment.parentCommentId) == model.comment.id) allCommentModels
+                                    |> List.map (view allCommentModels True disableNesting hideButtons)
                                 )
                         ]
                     ]

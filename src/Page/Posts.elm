@@ -92,11 +92,7 @@ singlePost model currentPost =
     let
         topLevelComments =
             List.filter (\commentModel -> commentModel.comment.parentCommentId == Nothing) model.currentPostCommentModels
-                |> List.map
-                    (\m ->
-                        CommentItem.view model.currentPostCommentModels False False m
-                            |> Html.Styled.map (OnCommentFormMsg m.comment.id)
-                    )
+                |> List.map (CommentItem.view model.currentPostCommentModels False False False)
 
         comments =
             div [ css [ marginLeft (px ratingButtonsWidth) ] ]

@@ -186,7 +186,6 @@ update msg model =
             in
                 ( { model | newPostData = newPostModel }, Cmd.map OnNewPostMsg cmd )
 
-        -- TODO: the sent `id` is wrong, top level id is used instead of the current comment id.
         OnCommentFormMsg id subMsg ->
             case (List.Extra.find (\m -> m.comment.id == id) model.currentPostCommentModels) of
                 Just commentFormModel ->
