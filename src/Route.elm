@@ -31,6 +31,32 @@ stringToPostType postTypeName =
             UnknownPost
 
 
+userTabTypeToString : UserTabType -> String
+userTabTypeToString userTabType =
+    case userTabType of
+        PostsTab ->
+            "posts"
+
+        CommentsTab ->
+            "comments"
+
+        UnknownTab ->
+            ""
+
+
+stringToUserTabType : String -> UserTabType
+stringToUserTabType userTabTypeName =
+    case userTabTypeName of
+        "posts" ->
+            PostsTab
+
+        "comments" ->
+            CommentsTab
+
+        _ ->
+            UnknownTab
+
+
 routeToString : Route -> String
 routeToString route =
     case route of
@@ -43,8 +69,8 @@ routeToString route =
         NewPostRoute postType ->
             "/posts/new/" ++ postType
 
-        UserRoute userId ->
-            "/users/" ++ (toString userId)
+        UserRoute userId tab ->
+            "/users/" ++ (toString userId) ++ "/" ++ tab
 
         LoginRoute ->
             "/login"
@@ -65,7 +91,7 @@ matchers =
         [ map PostsRoute top
         , map NewPostRoute (s "posts" </> s "new" </> string)
         , map PostRoute (s "posts" </> int)
-        , map UserRoute (s "users" </> int)
+        , map UserRoute (s "users" </> int </> string)
         , map LoginRoute (s "login")
         , map LogoutRoute (s "logout")
         , map RegisterRoute (s "register")

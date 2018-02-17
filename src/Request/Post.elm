@@ -8,6 +8,8 @@ module Request.Post
         , updateCommentRating
         , createComment
         , deleteComment
+        , postDecoder
+        , commentDecoder
         )
 
 import Http
@@ -30,7 +32,7 @@ list apiBase session =
         |> HttpBuilder.withExpect (Http.expectJson postListDecoder)
         |> HttpBuilder.toRequest
         |> RemoteData.sendRequest
-        |> Cmd.map OnfetchPosts
+        |> Cmd.map OnFetchPosts
 
 
 get : String -> Maybe Session -> PostId -> Cmd Msg
@@ -40,7 +42,7 @@ get apiBase session postId =
         |> HttpBuilder.withExpect (Http.expectJson postItemDecoder)
         |> HttpBuilder.toRequest
         |> RemoteData.sendRequest
-        |> Cmd.map OnfetchCurrentPost
+        |> Cmd.map OnFetchCurrentPost
 
 
 create : String -> Maybe Session -> NewPostModel -> Http.Request Post

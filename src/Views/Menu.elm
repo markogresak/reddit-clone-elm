@@ -18,7 +18,7 @@ view model =
                     span []
                         [ span [ css [ marginRight (px 8) ] ]
                             [ text "Logged in as "
-                            , (linkTo NavigateTo (routeToString (UserRoute sessionUser.id)))
+                            , (linkTo NavigateTo (routeToString (UserRoute sessionUser.id (userTabTypeToString PostsTab))))
                                 []
                                 [ text sessionUser.username ]
                             , text "."

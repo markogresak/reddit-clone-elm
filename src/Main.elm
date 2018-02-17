@@ -17,12 +17,14 @@ import List.Extra
 import Task
 import Http
 import Request.Post as Post
+import Request.User
 import Views.Menu as Menu
+import Views.CommentItem as CommentItem
 import Page.NotFound as NotFound
 import Page.Login as Login
 import Page.Posts as Posts
 import Page.NewPost as NewPost
-import Views.CommentItem as CommentItem
+import Page.User as User
 
 
 decodeSession : Value -> Maybe Session
@@ -67,6 +69,7 @@ init value location =
             , sessionUser = sessionUser
             , loginData = (Login.initialModel apiBase)
             , newPostData = (NewPost.initialModel apiBase sessionUser newPostType)
+            , userPage = RemoteData.Loading
             }
 
 
@@ -100,8 +103,20 @@ initLocationState route model =
                         in
                             ( { model | newPostData = initialNewPostData }, Cmd.none )
 
-        UserRoute userId ->
-            ( model, Cmd.none )
+        UserRoute userId tabType ->
+            let
+                requestCmd =
+                    Request.User.get model.apiBase model.sessionUser userId
+
+                cmd =
+                    case model.userPage of
+                        RemoteData.Success userPage ->
+                            (userPage.id == userId) ? Cmd.none <| requestCmd
+
+                        _ ->
+                            requestCmd
+            in
+                ( model, cmd )
 
         LoginRoute ->
             case model.sessionUser of
@@ -132,13 +147,13 @@ update msg model =
         NavigateTo route ->
             ( model, Navigation.newUrl route )
 
-        OnfetchPosts response ->
+        OnFetchPosts response ->
             ( { model | posts = response }, getCurrentDate )
 
         SetCurrentTime date ->
             ( { model | now = date }, Cmd.none )
 
-        OnfetchCurrentPost response ->
+        OnFetchCurrentPost response ->
             case response of
                 RemoteData.Success currentPost ->
                     let
@@ -290,6 +305,9 @@ update msg model =
         OnRateCompleted (Err _) ->
             ( model, Cmd.none )
 
+        Model.OnFetchUserPage userPage ->
+            ( { model | userPage = userPage }, getCurrentDate )
+
 
 view : Model -> Html Msg
 view model =
@@ -335,8 +353,8 @@ page model =
                         NewPost.view model.newPostData
                             |> Html.Styled.map OnNewPostMsg
 
-        UserRoute id ->
-            Debug.crash ("TODO: UserRoute/" ++ toString id)
+        UserRoute id tabType ->
+            User.view (Route.stringToUserTabType tabType) model model.userPage
 
         LoginRoute ->
             Login.view model.loginData

@@ -1,4 +1,4 @@
-module Page.Posts exposing (listView, itemView)
+module Page.Posts exposing (listView, itemView, postItemList)
 
 import Css exposing (..)
 import Html.Styled exposing (..)
@@ -59,6 +59,11 @@ newPostButton postType buttonText =
         ]
 
 
+postItemList : Model -> List Post -> List (Html Msg)
+postItemList model posts =
+    List.map (postItem model) posts
+
+
 postList : Model -> List Post -> Html Msg
 postList model posts =
     div []
@@ -84,7 +89,7 @@ postList model posts =
                 , padding (px postsListSpacing)
                 ]
             ]
-            (List.map (postItem model) posts)
+            (postItemList model posts)
         ]
 
 

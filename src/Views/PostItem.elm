@@ -61,7 +61,7 @@ details post now =
                     Date.Distance.inWords post.submittedAt now
 
                 Nothing ->
-                    "???"
+                    ""
     in
         div
             [ css
@@ -72,7 +72,7 @@ details post now =
             ]
             [ span []
                 [ text ("Submitted " ++ submittedAgo ++ " ago by ")
-                , (linkTo NavigateTo (routeToString (UserRoute post.user.id)))
+                , (linkTo NavigateTo (routeToString (UserRoute post.user.id (userTabTypeToString PostsTab))))
                     []
                     [ text post.user.username ]
                 ]

@@ -64,11 +64,11 @@ commentDetails comment now isCollapsed =
                 [ fontSize (px textSmSize)
                 , color mutedTextColor
                 , paddingTop (px 6)
-                , marginBottom (px 6)
+                , marginBottom (px 4)
                 ]
             ]
             [ collapseButton isCollapsed
-            , linkTo CommentFormMsgNavigateTo (routeToString (UserRoute comment.user.id)) [] [ text comment.user.username ]
+            , linkTo CommentFormMsgNavigateTo (routeToString (UserRoute comment.user.id (userTabTypeToString PostsTab))) [] [ text comment.user.username ]
             , span
                 [ css
                     [ fontWeight bold
@@ -91,7 +91,7 @@ commentActionButtons model comment areHidden =
                     , fontWeight bold
                     , color mutedTextColor
                     , paddingTop (px 8)
-                    , marginBottom (px 6)
+                    , marginBottom (px 4)
                     , marginRight (px 6)
                     , cursor pointer
                     ]

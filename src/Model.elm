@@ -56,6 +56,7 @@ type alias Model =
     , sessionUser : Maybe Session
     , loginData : LoginModel
     , newPostData : NewPostModel
+    , userPage : WebData UserPage
     }
 
 
@@ -66,6 +67,14 @@ type alias UserId =
 type alias User =
     { id : UserId
     , username : String
+    }
+
+
+type alias UserPage =
+    { id : UserId
+    , username : String
+    , posts : List Post
+    , comments : List Comment
     }
 
 
@@ -125,6 +134,12 @@ type PostType
     | UnknownPost
 
 
+type UserTabType
+    = PostsTab
+    | CommentsTab
+    | UnknownTab
+
+
 type RatingType
     = PostRating
     | CommentRating
@@ -138,7 +153,7 @@ type Route
     = PostsRoute
     | PostRoute PostId
     | NewPostRoute String
-    | UserRoute UserId
+    | UserRoute UserId String
     | LoginRoute
     | LogoutRoute
     | RegisterRoute
@@ -147,8 +162,9 @@ type Route
 
 type Msg
     = NavigateTo String
-    | OnfetchPosts (WebData (List Post))
-    | OnfetchCurrentPost (WebData Post)
+    | OnFetchPosts (WebData (List Post))
+    | OnFetchCurrentPost (WebData Post)
+    | OnFetchUserPage (WebData UserPage)
     | OnLocationChange Route
     | SetSession (Maybe Session)
     | SetCurrentTime (Maybe Date)
