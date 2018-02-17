@@ -1,9 +1,9 @@
-module Views.CommentItem exposing (initialModel, view, update, commentForm)
+module Views.CommentItem exposing (initialModel, view, update, commentForm, ExternalMsg(..))
 
 import Css exposing (..)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, name, id, cols, rows, value, type_)
-import Html.Styled.Events exposing (onClick, onInput)
+import Html.Styled.Events exposing (onClick, onInput, onSubmit)
 import Model exposing (..)
 import Route exposing (..)
 import StyleVariables exposing (..)
@@ -14,6 +14,8 @@ import List
 import Ternary exposing (..)
 import Views.LinkTo exposing (linkTo)
 import Views.RatingButtons exposing (ratingButtons)
+import Request.Post
+import Http
 
 
 initialModel : Model -> Comment -> CommentFormModel
@@ -192,7 +194,7 @@ commentForm model withCancelButton =
                 , marginBottom (px 16)
                 ]
             ]
-            [ form []
+            [ form [ onSubmit OnCommentSubmit ]
                 [ textarea
                     [ css [ width (px 500), height (px 100) ]
                     , name "text"
@@ -208,7 +210,7 @@ commentForm model withCancelButton =
                                 [ type_ "submit"
                                 , Html.Styled.Attributes.disabled model.isLoading
                                 ]
-                                [ text "Submit reply" ]
+                                [ text (model.isEditMode ? "Edit comment" <| "Submit reply") ]
                           ]
                         , cancelButton
                         ]
@@ -220,6 +222,9 @@ commentForm model withCancelButton =
 type ExternalMsg
     = NoOp
     | OnAddNewComment Comment
+    | OnEditComment Comment
+    | CommentFormNavigateTo String
+    | CommentFormOnRate RatingType VoteId Bool Int
 
 
 update : CommentFormMsg -> CommentFormModel -> ( ( CommentFormModel, Cmd CommentFormMsg ), ExternalMsg )
@@ -227,9 +232,6 @@ update msg model =
     case msg of
         OnCommentChange val ->
             ( ( { model | commentText = val }, Cmd.none ), NoOp )
-
-        OnCommentSubmit ->
-            Debug.crash "TODO"
 
         OnReplyClick ->
             ( ( { model | showReplyForm = True, isEditMode = False, commentText = "" }, Cmd.none ), NoOp )
@@ -241,13 +243,32 @@ update msg model =
             ( ( { model | showReplyForm = True, isEditMode = True, commentText = model.comment.text }, Cmd.none ), NoOp )
 
         OnDeleteClick ->
-            Debug.crash "TODO"
+            Debug.crash "TODO: CommentItem.OnDeleteClick"
 
         OnCollapseClick ->
             ( ( { model | isCollapsed = not model.isCollapsed }, Cmd.none ), NoOp )
 
-        Model.CommentFormMsgNavigateTo _ ->
-            Debug.crash "TODO"
+        Model.CommentFormMsgNavigateTo route ->
+            ( ( model, Cmd.none ), CommentFormNavigateTo route )
 
-        Model.CommentFormMsgOnRate _ _ _ _ ->
-            Debug.crash "TODO"
+        Model.CommentFormMsgOnRate ratingType id isDownButton userRating ->
+            ( ( model, Cmd.none ), CommentFormOnRate ratingType id isDownButton userRating )
+
+        OnCommentSubmit ->
+            ( ( { model | isLoading = True }
+              , Http.send OnCommentSubmitCompleted (Request.Post.createComment model.apiBase model.session model)
+              )
+            , NoOp
+            )
+
+        OnCommentSubmitCompleted (Err error) ->
+            let
+                errorMessages =
+                    [ "An error occured while trying to create a new post." ]
+            in
+                ( ( { model | errors = errorMessages, isLoading = False }, Cmd.none ), NoOp )
+
+        OnCommentSubmitCompleted (Ok newComment) ->
+            ( ( { model | errors = [], isLoading = False, showReplyForm = False, isEditMode = False }, Cmd.none )
+            , (model.isEditMode ? OnEditComment <| OnAddNewComment) newComment
+            )

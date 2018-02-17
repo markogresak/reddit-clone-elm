@@ -1,4 +1,13 @@
-module Request.Post exposing (list, get, create, rate, updatePostRating, updateCommentRating)
+module Request.Post
+    exposing
+        ( list
+        , get
+        , create
+        , rate
+        , updatePostRating
+        , updateCommentRating
+        , createComment
+        )
 
 import Http
 import Json.Decode as Decode
@@ -81,6 +90,33 @@ rate apiBase session id rating ratingType =
             |> HttpBuilder.toRequest
 
 
+createComment : String -> Maybe Session -> CommentFormModel -> Http.Request Comment
+createComment apiBase session newCommentModel =
+    let
+        isEdit =
+            newCommentModel.isEditMode
+
+        endpoint =
+            isEdit ? (commentUrl apiBase newCommentModel.comment.id) <| (commentsUrl apiBase)
+
+        comment =
+            Encode.object
+                [ ( "post_id", Encode.int newCommentModel.comment.postId )
+                , ( "text", Encode.string newCommentModel.commentText )
+                , ( "parent_comment_id", Encode.int newCommentModel.comment.id )
+                ]
+
+        body =
+            Encode.object [ ( "comment", comment ) ]
+                |> Http.jsonBody
+    in
+        (isEdit ? HttpBuilder.patch <| HttpBuilder.post) endpoint
+            |> withAccessToken session
+            |> HttpBuilder.withBody body
+            |> HttpBuilder.withExpect (Http.expectJson (Decode.at [ "data" ] commentDecoder))
+            |> HttpBuilder.toRequest
+
+
 postsUrl : String -> String
 postsUrl apiBase =
     apiBase ++ "/posts"
@@ -91,9 +127,14 @@ postUrl apiBase postId =
     postsUrl apiBase ++ "/" ++ toString postId
 
 
+commentsUrl : String -> String
+commentsUrl apiBase =
+    apiBase ++ "/comments"
+
+
 commentUrl : String -> CommentId -> String
 commentUrl apiBase commentId =
-    apiBase ++ "/comments/" ++ toString commentId
+    commentsUrl apiBase ++ "/" ++ toString commentId
 
 
 postListDecoder : Decode.Decoder (List Post)

@@ -192,10 +192,33 @@ update msg model =
                     let
                         ( ( newCommentFormModel, cmd ), msgFromPage ) =
                             CommentItem.update subMsg commentFormModel
+
+                        newModel =
+                            { model | currentPostCommentModels = List.map (\m -> (m.comment.id == id) ? newCommentFormModel <| m) model.currentPostCommentModels }
                     in
-                        ( { model | currentPostCommentModels = List.map (\m -> (m.comment.id == id) ? newCommentFormModel <| m) model.currentPostCommentModels }
-                        , Cmd.map (OnCommentFormMsg id) cmd
-                        )
+                        case msgFromPage of
+                            CommentItem.CommentFormNavigateTo route ->
+                                update (NavigateTo route) newModel
+
+                            CommentItem.CommentFormOnRate ratingType id isDownButton userRating ->
+                                update (OnRate ratingType id isDownButton userRating) newModel
+
+                            CommentItem.OnAddNewComment newComment ->
+                                ( { newModel
+                                    | currentPostCommentModels = newModel.currentPostCommentModels ++ [ (CommentItem.initialModel newModel newComment) ]
+                                  }
+                                , Cmd.map (OnCommentFormMsg id) cmd
+                                )
+
+                            CommentItem.OnEditComment updatedComment ->
+                                ( { newModel
+                                    | currentPostCommentModels = List.map (\m -> (m.comment.id == updatedComment.id) ? (CommentItem.initialModel newModel updatedComment) <| m) newModel.currentPostCommentModels
+                                  }
+                                , Cmd.map (OnCommentFormMsg id) cmd
+                                )
+
+                            _ ->
+                                ( newModel, Cmd.map (OnCommentFormMsg id) cmd )
 
                 Nothing ->
                     ( model, Cmd.map (OnCommentFormMsg id) Cmd.none )
@@ -239,14 +262,7 @@ update msg model =
 
                         CommentRating ->
                             { model
-                                | currentPost =
-                                    case model.currentPost of
-                                        RemoteData.Success post ->
-                                            RemoteData.succeed
-                                                { post | comments = List.map (Post.updateCommentRating rating) post.comments }
-
-                                        _ ->
-                                            model.currentPost
+                                | currentPostCommentModels = List.map (\m -> { m | comment = Post.updateCommentRating rating m.comment }) model.currentPostCommentModels
                             }
             in
                 ( nextModel, Cmd.none )
@@ -299,8 +315,8 @@ page model =
                         NewPost.view model.newPostData
                             |> Html.Styled.map OnNewPostMsg
 
-        UserRoute _ ->
-            Debug.crash "TODO"
+        UserRoute id ->
+            Debug.crash ("TODO: UserRoute/" ++ toString id)
 
         LoginRoute ->
             Login.view model.loginData
@@ -310,7 +326,7 @@ page model =
             text ""
 
         RegisterRoute ->
-            Debug.crash "TODO"
+            Debug.crash "TODO: RegisterRoute"
 
         NotFoundRoute ->
             NotFound.view

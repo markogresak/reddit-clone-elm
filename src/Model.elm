@@ -176,7 +176,6 @@ type NewPostMsg
 
 type CommentFormMsg
     = OnCommentChange String
-    | OnCommentSubmit
     | OnReplyClick
     | OnReplyCancel
     | OnEditClick
@@ -184,3 +183,5 @@ type CommentFormMsg
     | OnCollapseClick
     | CommentFormMsgNavigateTo String
     | CommentFormMsgOnRate RatingType VoteId Bool Int
+    | OnCommentSubmit
+    | OnCommentSubmitCompleted (Result Http.Error Comment)
