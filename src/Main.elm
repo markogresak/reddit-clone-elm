@@ -40,10 +40,7 @@ init : Value -> Location -> ( Model, Cmd Msg )
 init value location =
     let
         apiBase =
-            if location.hostname == "localhost" then
-                "http://localhost:4000/api"
-            else
-                "https://reddit-eu.herokuapp.com/api"
+            (location.hostname == "localhost") ? "http://localhost:4000/api" <| "https://reddit-eu.herokuapp.com/api"
 
         currentRoute =
             Route.parseLocation location
