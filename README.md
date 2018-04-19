@@ -24,6 +24,8 @@ $ elm-package install
 
 ## Running in dev mode
 
+> Requires API server, see: https://github.com/markogresak/reddit-clone-backend
+
 ```
 $ yarn start
 ```
