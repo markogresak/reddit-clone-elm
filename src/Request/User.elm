@@ -1,14 +1,14 @@
-module Request.User exposing (login, loginErrorDecoder, get, register, registerErrorsDecoder)
+module Request.User exposing (get, login, loginErrorDecoder, register, registerErrorsDecoder)
 
 import Http
-import RemoteData
 import HttpBuilder
 import Json.Decode as Decode
-import Json.Encode as Encode
 import Json.Decode.Pipeline exposing (decode, optional, required)
+import Json.Encode as Encode
 import Model exposing (..)
-import Util.AccessToken exposing (withAccessToken, loginRequestSessionDecoder)
-import Request.Post exposing (postDecoder, commentDecoder)
+import RemoteData
+import Request.Post exposing (commentDecoder, postDecoder)
+import Util.AccessToken exposing (loginRequestSessionDecoder, withAccessToken)
 
 
 login : String -> { r | username : String, password : String } -> Http.Request Session
@@ -21,8 +21,8 @@ login apiBase { username, password } =
                 ]
                 |> Http.jsonBody
     in
-        Decode.at [ "data" ] loginRequestSessionDecoder
-            |> Http.post (loginUrl apiBase) body
+    Decode.at [ "data" ] loginRequestSessionDecoder
+        |> Http.post (loginUrl apiBase) body
 
 
 register : String -> { r | username : String, password : String } -> Http.Request ()
@@ -38,9 +38,9 @@ register apiBase { username, password } =
             Encode.object [ ( "user", user ) ]
                 |> Http.jsonBody
     in
-        HttpBuilder.post (usersUrl apiBase)
-            |> HttpBuilder.withBody body
-            |> HttpBuilder.toRequest
+    HttpBuilder.post (usersUrl apiBase)
+        |> HttpBuilder.withBody body
+        |> HttpBuilder.toRequest
 
 
 get : String -> Maybe Session -> UserId -> Cmd Msg
@@ -73,7 +73,7 @@ registerErrorsDecoder body =
                 Err _ ->
                     []
     in
-        List.concat (List.map (\key -> List.map (\s -> key ++ " " ++ s) (decodeErrorList [ "errors", key ])) [ "username", "password" ])
+    List.concat (List.map (\key -> List.map (\s -> key ++ " " ++ s) (decodeErrorList [ "errors", key ])) [ "username", "password" ])
 
 
 loginErrorDecoder : String -> List String

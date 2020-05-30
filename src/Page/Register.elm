@@ -1,16 +1,15 @@
-module Page.Register exposing (initialModel, view, update, ExternalMsg(..))
+module Page.Register exposing (ExternalMsg(..), initialModel, update, view)
 
 import Css exposing (..)
 import Html.Styled exposing (..)
-import Html.Styled.Attributes exposing (css, for, type_, name, id)
-import Html.Styled.Events exposing (onInput, onCheck, onSubmit)
-import StyleVariables exposing (..)
-import Model exposing (..)
-import Ternary exposing ((?))
+import Html.Styled.Attributes exposing (css, for, id, name, type_)
+import Html.Styled.Events exposing (onCheck, onInput, onSubmit)
 import Http
+import Model exposing (..)
+import Page.Login exposing (authInput, authLabel)
 import Request.User exposing (register, registerErrorsDecoder)
+import StyleVariables exposing (..)
 import Views.ApiErrors exposing (apiErrors)
-import Page.Login exposing (authLabel, authInput)
 
 
 initialModel : ApiBase -> RegisterModel
@@ -29,14 +28,14 @@ view : RegisterModel -> Html RegisterMsg
 view model =
     let
         isError =
-            (List.length model.errors) > 0
+            List.length model.errors > 0
 
         passConfirmError =
             isError || model.passwordConfirmError
 
         passwordError =
-            model.passwordConfirmError
-                ? (Html.Styled.small
+            if model.passwordConfirmError then
+                Html.Styled.small
                     [ css
                         [ maxWidth (pct 100)
                         , width (px 200)
@@ -46,44 +45,51 @@ view model =
                         ]
                     ]
                     [ text "Password confirmation must match the value for Password." ]
-                  )
-            <|
+
+            else
                 text ""
     in
-        div
-            [ css
-                [ width (vw 100)
-                , height (calc (vh 100) minus (px menuHeight))
-                , displayFlex
-                , alignItems center
-                , justifyContent center
-                ]
+    div
+        [ css
+            [ width (vw 100)
+            , height (calc (vh 100) minus (px menuHeight))
+            , displayFlex
+            , alignItems center
+            , justifyContent center
             ]
-            [ form [ onSubmit OnRegisterSubmit ]
-                [ div
-                    [ css
-                        [ displayFlex
-                        , flexDirection column
-                        , alignItems center
-                        , justifyContent spaceBetween
-                        , maxWidth (pct 100)
-                        , width (px authFormWidth)
-                        ]
-                    ]
-                    [ apiErrors model.errors
-                    , authLabel isError [ for "username" ] [ text "Username" ]
-                    , authInput isError [ type_ "text", name "username", onInput OnRegisterUsernameChange ]
-                    , authLabel isError [ for "password" ] [ text "Password" ]
-                    , authInput isError [ type_ "password", name "password", onInput OnRegisterPasswordChange ]
-                    , authLabel passConfirmError [ for "password" ] [ text "Password confirmation" ]
-                    , authInput passConfirmError [ type_ "password", name "password_confirmation", onInput OnRegisterPasswordConfirmChange ]
-                    , passwordError
-                    , button
-                        [ type_ "submit", Html.Styled.Attributes.disabled model.isLoading ]
-                        [ text (model.isLoading ? "Logging in..." <| "Register") ]
+        ]
+        [ form [ onSubmit OnRegisterSubmit ]
+            [ div
+                [ css
+                    [ displayFlex
+                    , flexDirection column
+                    , alignItems center
+                    , justifyContent spaceBetween
+                    , maxWidth (pct 100)
+                    , width (px authFormWidth)
                     ]
                 ]
+                [ apiErrors model.errors
+                , authLabel isError [ for "username" ] [ text "Username" ]
+                , authInput isError [ type_ "text", name "username", onInput OnRegisterUsernameChange ]
+                , authLabel isError [ for "password" ] [ text "Password" ]
+                , authInput isError [ type_ "password", name "password", onInput OnRegisterPasswordChange ]
+                , authLabel passConfirmError [ for "password" ] [ text "Password confirmation" ]
+                , authInput passConfirmError [ type_ "password", name "password_confirmation", onInput OnRegisterPasswordConfirmChange ]
+                , passwordError
+                , button
+                    [ type_ "submit", Html.Styled.Attributes.disabled model.isLoading ]
+                    [ text
+                        (if model.isLoading then
+                            "Logging in..."
+
+                         else
+                            "Register"
+                        )
+                    ]
+                ]
             ]
+        ]
 
 
 type ExternalMsg
@@ -100,9 +106,13 @@ update msg model =
                     { model | passwordConfirmError = model.password /= model.passwordConfirm }
 
                 action =
-                    modelWithErrors.passwordConfirmError ? Cmd.none <| Http.send OnRegisterCompleted (Request.User.register model.apiBase model)
+                    if modelWithErrors.passwordConfirmError then
+                        Cmd.none
+
+                    else
+                        Http.send OnRegisterCompleted (Request.User.register model.apiBase model)
             in
-                ( ( modelWithErrors, action ), NoOp )
+            ( ( modelWithErrors, action ), NoOp )
 
         OnRegisterUsernameChange username ->
             ( ( { model | username = username }, Cmd.none ), NoOp )
@@ -123,7 +133,7 @@ update msg model =
                         _ ->
                             [ "Could not register" ]
             in
-                ( ( { model | errors = errorMessages, isLoading = False }, Cmd.none ), NoOp )
+            ( ( { model | errors = errorMessages, isLoading = False }, Cmd.none ), NoOp )
 
         OnRegisterCompleted (Ok _) ->
             ( ( { model | errors = [], isLoading = False }, Cmd.none ), OnRegisterSuccess )

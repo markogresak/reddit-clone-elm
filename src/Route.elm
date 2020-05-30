@@ -1,8 +1,9 @@
 module Route exposing (..)
 
-import Navigation exposing (Location)
 import Model exposing (..)
-import UrlParser exposing (..)
+import Browser.Navigation as Nav
+import Url
+import Url.Parser exposing (Parser, (</>), int, map, oneOf, s, string, top, parse)
 
 
 postTypeToString : PostType -> String
@@ -64,13 +65,13 @@ routeToString route =
             "/"
 
         PostRoute postId ->
-            "/posts/" ++ (toString postId)
+            "/posts/" ++ String.fromInt postId
 
         NewPostRoute postType ->
             "/posts/new/" ++ postType
 
         UserRoute userId tab ->
-            "/users/" ++ (toString userId) ++ "/" ++ tab
+            "/users/" ++ String.fromInt userId ++ "/" ++ tab
 
         LoginRoute ->
             "/login"
@@ -98,11 +99,11 @@ matchers =
         ]
 
 
-parseLocation : Location -> Route
+parseLocation : Url.Url -> Route
 parseLocation location =
-    Maybe.withDefault NotFoundRoute (parsePath matchers location)
+    Maybe.withDefault NotFoundRoute (parse matchers location)
 
 
-modifyUrl : Route -> Cmd msg
-modifyUrl =
-    routeToString >> Navigation.modifyUrl
+modifyUrl : Nav.Key -> Route -> Cmd msg
+modifyUrl key route =
+    Nav.pushUrl key (routeToString route)

@@ -1,7 +1,6 @@
 module StyleVariables exposing (..)
 
 import Css exposing (hex)
-import Ternary exposing ((?))
 
 
 defaultTextColor : Css.Color
@@ -63,8 +62,10 @@ ratingColor : Int -> Css.Color
 ratingColor userRating =
     if userRating > 0 then
         voteUpColor
+
     else if userRating < 0 then
         voteDownColor
+
     else
         voteDefaultColor
 
@@ -73,10 +74,18 @@ voteButtonColor : Bool -> Int -> Css.Color
 voteButtonColor isDownButton userRating =
     case isDownButton of
         True ->
-            (userRating == -1) ? voteDownColor <| voteDefaultColor
+            if userRating == -1 then
+                voteDownColor
+
+            else
+                voteDefaultColor
 
         False ->
-            (userRating == 1) ? voteUpColor <| voteDefaultColor
+            if userRating == 1 then
+                voteUpColor
+
+            else
+                voteDefaultColor
 
 
 textSmSize : Float

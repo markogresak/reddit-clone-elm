@@ -4,37 +4,63 @@ import Css exposing (..)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css)
 import Html.Styled.Events exposing (onClick)
-import StyleVariables exposing (..)
-import Model exposing (..)
 import List exposing (concat)
-import Ternary exposing ((?))
+import Model exposing (..)
+import StyleVariables exposing (..)
 
 
 voteButton : (RatingType -> VoteId -> Bool -> Int -> m) -> VoteId -> Int -> Bool -> Bool -> Bool -> Html m
 voteButton msg id userRating isDownButton isComment voteNotAllowed =
     let
         arrowSize =
-            px (isComment ? 8 <| 10)
+            px
+                (if isComment then
+                    8
+
+                 else
+                    10
+                )
 
         arrowDirection =
-            isDownButton ? borderTop3 <| borderBottom3
+            if isDownButton then
+                borderTop3
+
+            else
+                borderBottom3
     in
-        button
-            [ css
-                [ property "background" "none"
-                , borderWidth inherit
-                , padding (px 0)
-                , width (px 0)
-                , height (px 0)
-                , borderLeft3 arrowSize solid transparent
-                , borderRight3 arrowSize solid transparent
-                , arrowDirection arrowSize solid (voteButtonColor isDownButton userRating)
-                , cursor (voteNotAllowed ? notAllowed <| pointer)
-                ]
-            , onClick (msg (isComment ? CommentRating <| PostRating) id isDownButton userRating)
-            , Html.Styled.Attributes.disabled voteNotAllowed
+    button
+        [ css
+            [ property "background" "none"
+            , borderWidth inherit
+            , padding (px 0)
+            , width (px 0)
+            , height (px 0)
+            , borderLeft3 arrowSize solid transparent
+            , borderRight3 arrowSize solid transparent
+            , arrowDirection arrowSize solid (voteButtonColor isDownButton userRating)
+            , cursor
+                (if voteNotAllowed then
+                    notAllowed
+
+                 else
+                    pointer
+                )
             ]
-            []
+        , onClick
+            (msg
+                (if isComment then
+                    CommentRating
+
+                 else
+                    PostRating
+                )
+                id
+                isDownButton
+                userRating
+            )
+        , Html.Styled.Attributes.disabled voteNotAllowed
+        ]
+        []
 
 
 ratingButtons :
@@ -53,17 +79,22 @@ ratingButtons session msg id rating userRating isComment isCollapsed =
 
         commentStyles : List Css.Style
         commentStyles =
-            isComment
-                ? [ marginTop (px 10)
-                  , marginRight (px 8)
-                  , flexBasis auto
-                  ]
-            <|
+            if isComment then
+                [ marginTop (px 10)
+                , marginRight (px 8)
+                , flexBasis auto
+                ]
+
+            else
                 []
 
         collapsedStyles : List Css.Style
         collapsedStyles =
-            isCollapsed ? [ visibility hidden ] <| []
+            if isCollapsed then
+                [ visibility hidden ]
+
+            else
+                []
 
         buttonSpacer =
             case isComment of
@@ -79,20 +110,20 @@ ratingButtons session msg id rating userRating isComment isCollapsed =
                         ]
                         [ text (toString rating) ]
     in
-        div
-            [ css
-                (concat
-                    [ [ displayFlex
-                      , flexDirection column
-                      , alignItems center
-                      , flexBasis (px ratingButtonsWidth)
-                      ]
-                    , commentStyles
-                    , collapsedStyles
-                    ]
-                )
-            ]
-            [ voteButton msg id userRating False isComment voteNotAllowed
-            , buttonSpacer
-            , voteButton msg id userRating True isComment voteNotAllowed
-            ]
+    div
+        [ css
+            (concat
+                [ [ displayFlex
+                  , flexDirection column
+                  , alignItems center
+                  , flexBasis (px ratingButtonsWidth)
+                  ]
+                , commentStyles
+                , collapsedStyles
+                ]
+            )
+        ]
+        [ voteButton msg id userRating False isComment voteNotAllowed
+        , buttonSpacer
+        , voteButton msg id userRating True isComment voteNotAllowed
+        ]

@@ -1,8 +1,8 @@
 module Util.AccessToken exposing (..)
 
-import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, required, requiredAt, hardcoded)
 import HttpBuilder exposing (RequestBuilder, withHeader)
+import Json.Decode as Decode
+import Json.Decode.Pipeline exposing (decode, hardcoded, required, requiredAt)
 import Json.Encode as Encode
 import Model exposing (..)
 

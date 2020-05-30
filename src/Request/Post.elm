@@ -1,28 +1,26 @@
-module Request.Post
-    exposing
-        ( list
-        , get
-        , create
-        , rate
-        , updatePostRating
-        , updateCommentRating
-        , createComment
-        , deleteComment
-        , postDecoder
-        , commentDecoder
-        )
+module Request.Post exposing
+    ( commentDecoder
+    , create
+    , createComment
+    , deleteComment
+    , get
+    , list
+    , postDecoder
+    , rate
+    , updateCommentRating
+    , updatePostRating
+    )
 
 import Http
+import HttpBuilder
 import Json.Decode as Decode
 import Json.Decode.Extra exposing (date)
-import Json.Decode.Pipeline exposing (decode, optional, required, hardcoded)
+import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required)
 import Json.Encode as Encode
 import Json.Encode.Extra exposing (maybe)
 import Model exposing (..)
 import RemoteData
-import HttpBuilder
 import Util.AccessToken exposing (withAccessToken)
-import Ternary exposing ((?))
 
 
 list : String -> Maybe Session -> Cmd Msg
@@ -59,11 +57,11 @@ create apiBase session newPostModel =
             Encode.object [ ( "post", post ) ]
                 |> Http.jsonBody
     in
-        HttpBuilder.post (postsUrl apiBase)
-            |> withAccessToken session
-            |> HttpBuilder.withBody body
-            |> HttpBuilder.withExpect (Http.expectJson (Decode.at [ "data" ] postDecoder))
-            |> HttpBuilder.toRequest
+    HttpBuilder.post (postsUrl apiBase)
+        |> withAccessToken session
+        |> HttpBuilder.withBody body
+        |> HttpBuilder.withExpect (Http.expectJson (Decode.at [ "data" ] postDecoder))
+        |> HttpBuilder.toRequest
 
 
 rate : String -> Maybe Session -> Int -> Int -> RatingType -> Http.Request Rating
@@ -86,11 +84,11 @@ rate apiBase session id rating ratingType =
         body =
             Encode.object [ ( keyName, Encode.object [ ( "rating", Encode.int rating ) ] ) ]
     in
-        HttpBuilder.put (endpoint ++ "/rate")
-            |> withAccessToken session
-            |> HttpBuilder.withBody (Http.jsonBody body)
-            |> HttpBuilder.withExpect (Http.expectJson (Decode.at [ "data" ] decoder))
-            |> HttpBuilder.toRequest
+    HttpBuilder.put (endpoint ++ "/rate")
+        |> withAccessToken session
+        |> HttpBuilder.withBody (Http.jsonBody body)
+        |> HttpBuilder.withExpect (Http.expectJson (Decode.at [ "data" ] decoder))
+        |> HttpBuilder.toRequest
 
 
 createComment : String -> Maybe Session -> CommentFormModel -> Http.Request Comment
@@ -100,7 +98,11 @@ createComment apiBase session newCommentModel =
             newCommentModel.isEditMode
 
         endpoint =
-            isEdit ? (commentUrl apiBase newCommentModel.comment.id) <| (commentsUrl apiBase)
+            if isEdit then
+                commentUrl apiBase newCommentModel.comment.id
+
+            else
+                commentsUrl apiBase
 
         comment =
             Encode.object
@@ -108,7 +110,11 @@ createComment apiBase session newCommentModel =
                     [ [ ( "post_id", Encode.int newCommentModel.comment.postId )
                       , ( "text", Encode.string newCommentModel.commentText )
                       ]
-                    , (newCommentModel.comment.id /= -1) ? [ ( "parent_comment_id", Encode.int newCommentModel.comment.id ) ] <| []
+                    , if newCommentModel.comment.id /= -1 then
+                        [ ( "parent_comment_id", Encode.int newCommentModel.comment.id ) ]
+
+                      else
+                        []
                     ]
                 )
 
@@ -116,11 +122,17 @@ createComment apiBase session newCommentModel =
             Encode.object [ ( "comment", comment ) ]
                 |> Http.jsonBody
     in
-        (isEdit ? HttpBuilder.patch <| HttpBuilder.post) endpoint
-            |> withAccessToken session
-            |> HttpBuilder.withBody body
-            |> HttpBuilder.withExpect (Http.expectJson (Decode.at [ "data" ] commentDecoder))
-            |> HttpBuilder.toRequest
+    (if isEdit then
+        HttpBuilder.patch
+
+     else
+        HttpBuilder.post
+    )
+        endpoint
+        |> withAccessToken session
+        |> HttpBuilder.withBody body
+        |> HttpBuilder.withExpect (Http.expectJson (Decode.at [ "data" ] commentDecoder))
+        |> HttpBuilder.toRequest
 
 
 deleteComment : String -> Maybe Session -> CommentFormModel -> Http.Request ()
@@ -215,9 +227,17 @@ commentDecoder =
 
 updatePostRating : Rating -> Post -> Post
 updatePostRating rating post =
-    (post.id == rating.id) ? { post | rating = rating.rating, userRating = rating.userRating } <| post
+    if post.id == rating.id then
+        { post | rating = rating.rating, userRating = rating.userRating }
+
+    else
+        post
 
 
 updateCommentRating : Rating -> Comment -> Comment
 updateCommentRating rating comment =
-    (comment.id == rating.id) ? { comment | rating = rating.rating, userRating = rating.userRating } <| comment
+    if comment.id == rating.id then
+        { comment | rating = rating.rating, userRating = rating.userRating }
+
+    else
+        comment

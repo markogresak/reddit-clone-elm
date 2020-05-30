@@ -1,22 +1,20 @@
-module Views.CommentItem exposing (initialModel, view, update, commentForm, ExternalMsg(..), mapCommentMsg)
+module Views.CommentItem exposing (ExternalMsg(..), commentForm, initialModel, mapCommentMsg, update, view)
 
 import Css exposing (..)
 import Html.Styled exposing (..)
-import Html.Styled.Attributes exposing (css, name, id, cols, rows, value, type_)
+import Html.Styled.Attributes exposing (cols, css, id, name, rows, type_, value)
 import Html.Styled.Events exposing (onClick, onInput, onSubmit)
+import Http
+import List
 import Model exposing (..)
+import Request.Post
 import Route exposing (..)
 import StyleVariables exposing (..)
-import Route exposing (..)
-import Date.Distance
-import Date exposing (Date)
-import List
-import Ternary exposing (..)
+import Time.Distance
+import Util.Ports as Ports
+import Util.Ternary exposing (..)
 import Views.LinkTo exposing (linkTo)
 import Views.RatingButtons exposing (ratingButtons)
-import Request.Post
-import Http
-import Util.Ports as Ports
 
 
 initialModel : Model -> Comment -> CommentFormModel
@@ -54,31 +52,31 @@ commentDetails comment now isCollapsed =
         submittedAgo =
             case now of
                 Just now ->
-                    Date.Distance.inWords comment.submittedAt now
+                    Time.Distance.inWords (Date.toTime comment.submittedAt) now
 
                 Nothing ->
                     ""
     in
-        div
+    div
+        [ css
+            [ fontSize (px textSmSize)
+            , color mutedTextColor
+            , paddingTop (px 6)
+            , marginBottom (px 4)
+            ]
+        ]
+        [ collapseButton isCollapsed
+        , linkTo CommentFormMsgNavigateTo (routeToString (UserRoute comment.user.id (userTabTypeToString PostsTab))) [] [ text comment.user.username ]
+        , span
             [ css
-                [ fontSize (px textSmSize)
-                , color mutedTextColor
-                , paddingTop (px 6)
-                , marginBottom (px 4)
+                [ fontWeight bold
+                , color defaultTextColor
                 ]
             ]
-            [ collapseButton isCollapsed
-            , linkTo CommentFormMsgNavigateTo (routeToString (UserRoute comment.user.id (userTabTypeToString PostsTab))) [] [ text comment.user.username ]
-            , span
-                [ css
-                    [ fontWeight bold
-                    , color defaultTextColor
-                    ]
-                ]
-                [ text (" " ++ (toString comment.rating) ++ " points ") ]
-            , span []
-                [ text (submittedAgo ++ " ago") ]
-            ]
+            [ text (" " ++ toString comment.rating ++ " points ") ]
+        , span []
+            [ text (submittedAgo ++ " ago") ]
+        ]
 
 
 commentActionButtons : CommentFormModel -> Comment -> Bool -> Html CommentFormMsg
@@ -113,20 +111,21 @@ commentActionButtons model comment areHidden =
                     , actionLink OnDeleteClick [ text "Delete" ]
                     ]
                 ]
+
             else
                 []
     in
-        areHidden
-            ? text ""
-        <|
-            span []
-                [ span []
-                    (List.concat
-                        [ [ actionLink OnReplyClick [ text "Reply" ] ]
-                        , ownCommentActions
-                        ]
-                    )
-                ]
+    areHidden
+        ? text ""
+    <|
+        span []
+            [ span []
+                (List.concat
+                    [ [ actionLink OnReplyClick [ text "Reply" ] ]
+                    , ownCommentActions
+                    ]
+                )
+            ]
 
 
 mapCommentMsg : CommentId -> Html CommentFormMsg -> Html Msg
@@ -143,40 +142,39 @@ view allCommentModels isNested disableNesting hideButtons model =
         areActionButtonsHidden =
             model.session == Nothing || model.showReplyForm || hideButtons
     in
-        div
-            [ css
-                [ displayFlex
-                , marginTop (px (isNested ? 8 <| 20))
-                , firstChild [ marginTop (px 0) ]
-                ]
+    div
+        [ css
+            [ displayFlex
+            , marginTop (px (isNested ? 8 <| 20))
+            , firstChild [ marginTop (px 0) ]
             ]
-            [ (ratingButtons model.session CommentFormMsgOnRate model.comment.id model.comment.rating model.comment.userRating True model.isCollapsed) |> mapMsg
-            , div []
-                [ (commentDetails model.comment model.now model.isCollapsed) |> mapMsg
-                , div [ css (model.isCollapsed ? [ display none ] <| []) ]
+        ]
+        [ ratingButtons model.session CommentFormMsgOnRate model.comment.id model.comment.rating model.comment.userRating True model.isCollapsed |> mapMsg
+        , div []
+            [ commentDetails model.comment model.now model.isCollapsed |> mapMsg
+            , div [ css (model.isCollapsed ? [ display none ] <| []) ]
+                [ div []
                     [ div []
-                        [ (div []
-                            [ (model.showReplyForm && model.isEditMode) ? (commentForm model True) <| span [] [ text model.comment.text ] ]
-                          )
-                            |> mapMsg
-                        , (commentActionButtons model model.comment areActionButtonsHidden) |> mapMsg
-                        , (model.showReplyForm && not model.isEditMode) ? ((commentForm model True) |> mapMsg) <| text ""
-                        , disableNesting
-                            ? text ""
-                          <|
-                            div
-                                [ css
-                                    [ borderLeft3 (px 1) solid defaultBorderColor
-                                    , paddingLeft (px 16)
-                                    ]
+                        [ (model.showReplyForm && model.isEditMode) ? commentForm model True <| span [] [ text model.comment.text ] ]
+                        |> mapMsg
+                    , commentActionButtons model model.comment areActionButtonsHidden |> mapMsg
+                    , (model.showReplyForm && not model.isEditMode) ? (commentForm model True |> mapMsg) <| text ""
+                    , disableNesting
+                        ? text ""
+                      <|
+                        div
+                            [ css
+                                [ borderLeft3 (px 1) solid defaultBorderColor
+                                , paddingLeft (px 16)
                                 ]
-                                (List.filter (\m -> (Maybe.withDefault 0 m.comment.parentCommentId) == model.comment.id) allCommentModels
-                                    |> List.map (view allCommentModels True disableNesting hideButtons)
-                                )
-                        ]
+                            ]
+                            (List.filter (\m -> Maybe.withDefault 0 m.comment.parentCommentId == model.comment.id) allCommentModels
+                                |> List.map (view allCommentModels True disableNesting hideButtons)
+                            )
                     ]
                 ]
             ]
+        ]
 
 
 commentForm : CommentFormModel -> Bool -> Html CommentFormMsg
@@ -195,36 +193,36 @@ commentForm model withCancelButton =
             <|
                 []
     in
-        div
-            [ css
-                [ marginTop (px 16)
-                , marginBottom (px 16)
-                ]
+    div
+        [ css
+            [ marginTop (px 16)
+            , marginBottom (px 16)
             ]
-            [ form [ onSubmit OnCommentSubmit ]
-                [ textarea
-                    [ css [ maxWidth (pct 100), width (px 500), height (px 100) ]
-                    , name "text"
-                    , id "text"
-                    , cols 1
-                    , rows 1
-                    , value model.commentText
-                    , onInput OnCommentChange
+        ]
+        [ form [ onSubmit OnCommentSubmit ]
+            [ textarea
+                [ css [ maxWidth (pct 100), width (px 500), height (px 100) ]
+                , name "text"
+                , id "text"
+                , cols 1
+                , rows 1
+                , value model.commentText
+                , onInput OnCommentChange
+                ]
+                []
+            , div [ css [ marginTop (px 10) ] ]
+                (List.concat
+                    [ [ button
+                            [ type_ "submit"
+                            , Html.Styled.Attributes.disabled model.isLoading
+                            ]
+                            [ text (model.isEditMode ? "Edit comment" <| "Submit reply") ]
+                      ]
+                    , cancelButton
                     ]
-                    []
-                , div [ css [ marginTop (px 10) ] ]
-                    (List.concat
-                        [ [ button
-                                [ type_ "submit"
-                                , Html.Styled.Attributes.disabled model.isLoading
-                                ]
-                                [ text (model.isEditMode ? "Edit comment" <| "Submit reply") ]
-                          ]
-                        , cancelButton
-                        ]
-                    )
-                ]
+                )
             ]
+        ]
 
 
 type ExternalMsg
@@ -272,7 +270,7 @@ update msg model =
                 errorMessages =
                     [ "An error occured while trying to create a new post." ]
             in
-                ( ( { model | errors = errorMessages, isLoading = False }, Cmd.none ), NoOp )
+            ( ( { model | errors = errorMessages, isLoading = False }, Cmd.none ), NoOp )
 
         OnCommentSubmitCompleted (Ok newComment) ->
             ( ( { model | errors = [], isLoading = False, showReplyForm = False, isEditMode = False, commentText = "" }, Cmd.none )
@@ -287,16 +285,16 @@ update msg model =
                 nextModel =
                     { model | isConfirmMode = False }
             in
-                case result of
-                    True ->
-                        ( ( nextModel
-                          , Http.send OnCommentDeleteCompleted (Request.Post.deleteComment model.apiBase model.session model)
-                          )
-                        , NoOp
-                        )
+            case result of
+                True ->
+                    ( ( nextModel
+                      , Http.send OnCommentDeleteCompleted (Request.Post.deleteComment model.apiBase model.session model)
+                      )
+                    , NoOp
+                    )
 
-                    False ->
-                        ( ( nextModel, Cmd.none ), NoOp )
+                False ->
+                    ( ( nextModel, Cmd.none ), NoOp )
 
         OnCommentDeleteCompleted (Err _) ->
             ( ( model, Cmd.none ), NoOp )

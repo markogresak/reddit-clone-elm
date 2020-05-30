@@ -1,17 +1,16 @@
-module Page.Posts exposing (listView, itemView, postItemList)
+module Page.Posts exposing (itemView, listView, postItemList)
 
 import Css exposing (..)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css)
-import StyleVariables exposing (..)
+import List.Extra
 import Model exposing (..)
-import Route exposing (..)
 import RemoteData exposing (WebData)
-import Ternary exposing ((?))
+import Route exposing (..)
+import StyleVariables exposing (..)
+import Views.CommentItem as CommentItem
 import Views.LinkTo exposing (linkTo)
 import Views.PostItem exposing (postItem)
-import Views.CommentItem as CommentItem
-import List.Extra
 
 
 listView : Model -> WebData (List Post) -> Html Msg
@@ -52,7 +51,8 @@ newPostButton postType buttonText =
         [ css
             [ marginRight (px 10) ]
         ]
-        [ (linkTo NavigateTo (routeToString (NewPostRoute (postTypeToString postType))))
+        [ linkTo NavigateTo
+            (routeToString (NewPostRoute (postTypeToString postType)))
             []
             [ button [] [ text buttonText ]
             ]
@@ -75,11 +75,12 @@ postList model posts =
                 , justifyContent flexEnd
                 ]
             ]
-            ((model.sessionUser /= Nothing)
-                ? [ newPostButton LinkPost "+ Add new link post"
-                  , newPostButton TextPost "+ Add new text post"
-                  ]
-             <|
+            (if model.sessionUser /= Nothing then
+                [ newPostButton LinkPost "+ Add new link post"
+                , newPostButton TextPost "+ Add new text post"
+                ]
+
+             else
                 []
             )
         , div
@@ -101,9 +102,9 @@ singlePost model currentPost =
                 |> List.map (CommentItem.view model.currentPostCommentModels False False False)
 
         commentForm =
-            case (List.Extra.find (\m -> m.comment.id == -1) model.currentPostCommentModels) of
+            case List.Extra.find (\m -> m.comment.id == -1) model.currentPostCommentModels of
                 Just newCommentModel ->
-                    (CommentItem.commentForm newCommentModel False) |> CommentItem.mapCommentMsg -1
+                    CommentItem.commentForm newCommentModel False |> CommentItem.mapCommentMsg -1
 
                 Nothing ->
                     text ""
@@ -113,7 +114,7 @@ singlePost model currentPost =
                 (List.concat
                     [ [ div [ css [ marginTop (px 16) ] ]
                             [ strong []
-                                [ text ((toString currentPost.commentCount) ++ " comments") ]
+                                [ text (toString currentPost.commentCount ++ " comments") ]
                             , hr [] []
                             ]
                       , commentForm
@@ -122,27 +123,28 @@ singlePost model currentPost =
                     ]
                 )
     in
-        div
-            [ css
-                [ maxWidth (px contentWidth)
-                , margin2 (px 0) auto
-                , padding (px postsListSpacing)
-                ]
+    div
+        [ css
+            [ maxWidth (px contentWidth)
+            , margin2 (px 0) auto
+            , padding (px postsListSpacing)
             ]
-            [ postItem model currentPost
-            , (String.isEmpty currentPost.text)
-                ? text ""
-              <|
-                div
-                    [ css
-                        [ backgroundColor textBlockBackground
-                        , marginTop (px 16)
-                        , marginLeft (px ratingButtonsWidth)
-                        , padding (px 16)
-                        , borderRadius (px 4)
-                        , border3 (px 1) solid textBlockBorder
-                        ]
+        ]
+        [ postItem model currentPost
+        , if String.isEmpty currentPost.text then
+            text ""
+
+          else
+            div
+                [ css
+                    [ backgroundColor textBlockBackground
+                    , marginTop (px 16)
+                    , marginLeft (px ratingButtonsWidth)
+                    , padding (px 16)
+                    , borderRadius (px 4)
+                    , border3 (px 1) solid textBlockBorder
                     ]
-                    [ text currentPost.text ]
-            , comments
-            ]
+                ]
+                [ text currentPost.text ]
+        , comments
+        ]

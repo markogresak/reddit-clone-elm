@@ -4,8 +4,8 @@ import Css exposing (..)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css, href)
 import Model exposing (..)
-import StyleVariables exposing (..)
 import Route exposing (..)
+import StyleVariables exposing (..)
 import Views.LinkTo exposing (linkTo)
 
 
@@ -18,12 +18,14 @@ view model =
                     span []
                         [ span [ css [ marginRight (px 8) ] ]
                             [ text "Logged in as "
-                            , (linkTo NavigateTo (routeToString (UserRoute sessionUser.id (userTabTypeToString PostsTab))))
+                            , linkTo NavigateTo
+                                (routeToString (UserRoute sessionUser.id (userTabTypeToString PostsTab)))
                                 []
                                 [ text sessionUser.username ]
                             , text "."
                             ]
-                        , (linkTo NavigateTo (routeToString LogoutRoute))
+                        , linkTo NavigateTo
+                            (routeToString LogoutRoute)
                             []
                             [ text "Logout" ]
                         ]
@@ -31,31 +33,34 @@ view model =
                 Nothing ->
                     div []
                         [ span [ css [ marginRight (px 16) ] ]
-                            [ (linkTo NavigateTo (routeToString RegisterRoute))
+                            [ linkTo NavigateTo
+                                (routeToString RegisterRoute)
                                 []
                                 [ text "Register" ]
                             ]
                         , span []
-                            [ (linkTo NavigateTo (routeToString LoginRoute))
+                            [ linkTo NavigateTo
+                                (routeToString LoginRoute)
                                 []
                                 [ text "Login" ]
                             ]
                         ]
     in
-        div
-            [ css
-                [ displayFlex
-                , justifyContent flexEnd
-                , padding2 (px 10) (px 16)
-                , borderBottom3 (px 1) solid defaultBorderColor
-                , height (px menuHeight)
-                , boxSizing borderBox
-                ]
+    div
+        [ css
+            [ displayFlex
+            , justifyContent flexEnd
+            , padding2 (px 10) (px 16)
+            , borderBottom3 (px 1) solid defaultBorderColor
+            , height (px menuHeight)
+            , boxSizing borderBox
             ]
-            [ span [ css [ marginRight auto ] ]
-                [ (linkTo NavigateTo (routeToString PostsRoute))
-                    []
-                    [ text "Home" ]
-                ]
-            , menuRightLinks
+        ]
+        [ span [ css [ marginRight auto ] ]
+            [ linkTo NavigateTo
+                (routeToString PostsRoute)
+                []
+                [ text "Home" ]
             ]
+        , menuRightLinks
+        ]

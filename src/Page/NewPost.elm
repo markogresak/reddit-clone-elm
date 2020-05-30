@@ -1,12 +1,11 @@
-module Page.NewPost exposing (initialModel, view, update, ExternalMsg(..))
+module Page.NewPost exposing (ExternalMsg(..), initialModel, update, view)
 
 import Css exposing (..)
 import Html.Styled exposing (..)
-import Html.Styled.Attributes exposing (css, for, type_, name, id, cols, rows)
+import Html.Styled.Attributes exposing (cols, css, for, id, name, rows, type_)
 import Html.Styled.Events exposing (onInput, onSubmit)
-import Model exposing (..)
-import Ternary exposing ((?))
 import Http
+import Model exposing (..)
 import Request.Post
 import Route exposing (modifyUrl, postTypeToString)
 import Views.ApiErrors exposing (apiErrors)
@@ -54,26 +53,33 @@ view model =
                 Model.UnknownPost ->
                     text ""
     in
-        div
-            [ css
-                [ maxWidth (px 500)
-                , margin3 (px 20) auto (px 0)
-                ]
+    div
+        [ css
+            [ maxWidth (px 500)
+            , margin3 (px 20) auto (px 0)
             ]
-            [ h1 [] [ text ("Add new " ++ (postTypeToString model.postType) ++ " post") ]
-            , apiErrors model.errors
-            , div []
-                [ form [ onSubmit OnNewPostSubmit ]
-                    [ formGroup
-                        [ newPostLabel [ for "title" ] [ text "Title" ]
-                        , newPostInput [ type_ "text", name "title", id "title", onInput OnTitleChange ]
-                        ]
-                    , postTypeForm
-                    , button [ type_ "submit", Html.Styled.Attributes.disabled model.isLoading ]
-                        [ text (model.isLoading ? "Saving post..." <| "Save post") ]
+        ]
+        [ h1 [] [ text ("Add new " ++ postTypeToString model.postType ++ " post") ]
+        , apiErrors model.errors
+        , div []
+            [ form [ onSubmit OnNewPostSubmit ]
+                [ formGroup
+                    [ newPostLabel [ for "title" ] [ text "Title" ]
+                    , newPostInput [ type_ "text", name "title", id "title", onInput OnTitleChange ]
+                    ]
+                , postTypeForm
+                , button [ type_ "submit", Html.Styled.Attributes.disabled model.isLoading ]
+                    [ text
+                        (if model.isLoading then
+                            "Saving post..."
+
+                         else
+                            "Save post"
+                        )
                     ]
                 ]
             ]
+        ]
 
 
 formGroup : List (Html msg) -> Html msg
@@ -127,7 +133,7 @@ update msg model =
                 errorMessages =
                     [ "An error occured while trying to create a new post." ]
             in
-                ( ( { model | errors = errorMessages, isLoading = False }, Cmd.none ), NoOp )
+            ( ( { model | errors = errorMessages, isLoading = False }, Cmd.none ), NoOp )
 
         OnAddNewPostCompleted (Ok newPost) ->
             ( ( { model | errors = [], isLoading = False }

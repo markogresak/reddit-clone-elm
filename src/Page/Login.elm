@@ -1,17 +1,16 @@
-module Page.Login exposing (initialModel, view, update, ExternalMsg(..), authLabel, authInput)
+module Page.Login exposing (ExternalMsg(..), authInput, authLabel, initialModel, update, view)
 
 import Css exposing (..)
 import Html.Styled exposing (..)
-import Html.Styled.Attributes exposing (css, for, type_, name, id)
-import Html.Styled.Events exposing (onInput, onCheck, onSubmit)
-import StyleVariables exposing (..)
-import Model exposing (..)
-import Ternary exposing ((?))
+import Html.Styled.Attributes exposing (css, for, id, name, type_)
+import Html.Styled.Events exposing (onCheck, onInput, onSubmit)
 import Http
+import Model exposing (..)
 import Request.User exposing (login, loginErrorDecoder)
 import Route exposing (modifyUrl)
-import Util.Ports as Ports
+import StyleVariables exposing (..)
 import Util.AccessToken as AccessToken
+import Util.Ports as Ports
 import Views.ApiErrors exposing (apiErrors)
 
 
@@ -31,59 +30,66 @@ view : LoginModel -> Html LoginMsg
 view model =
     let
         isError =
-            (List.length model.errors) > 0
+            List.length model.errors > 0
 
         registerSuccessText =
-            model.registerSuccess
-                ? (strong [ css [ margin2 (px 16) (px 0), color successColor ] ]
+            if model.registerSuccess then
+                strong [ css [ margin2 (px 16) (px 0), color successColor ] ]
                     [ text "The registration was successful. You can now login with the chosen username and password." ]
-                  )
-            <|
+
+            else
                 text ""
     in
-        div
-            [ css
-                [ width (vw 100)
-                , height (calc (vh 100) minus (px menuHeight))
-                , displayFlex
-                , alignItems center
-                , justifyContent center
-                ]
+    div
+        [ css
+            [ width (vw 100)
+            , height (calc (vh 100) minus (px menuHeight))
+            , displayFlex
+            , alignItems center
+            , justifyContent center
             ]
-            [ form [ onSubmit OnLoginSubmit ]
-                [ div
-                    [ css
-                        [ displayFlex
-                        , flexDirection column
-                        , alignItems center
-                        , justifyContent spaceBetween
-                        , width (px authFormWidth)
-                        ]
-                    ]
-                    [ apiErrors model.errors
-                    , registerSuccessText
-                    , authLabel isError [ for "username" ] [ text "Username" ]
-                    , authInput isError [ type_ "text", name "username", onInput OnUsernameChange ]
-                    , authLabel isError [ for "password" ] [ text "Password" ]
-                    , authInput isError [ type_ "password", name "password", onInput OnPasswordChange ]
-                    , authLabel isError
-                        [ css [ marginBottom (px authInputMarginBottom) ] ]
-                        [ input
-                            [ type_ "checkbox"
-                            , name "rememberMe"
-                            , id "rememberMe"
-                            , onCheck OnRememberMeChange
-                            , Html.Styled.Attributes.checked model.rememberMe
-                            ]
-                            []
-                        , label [ for "rememberMe", css [ marginLeft (px 8) ] ] [ text "Remember me" ]
-                        ]
-                    , button
-                        [ type_ "submit", Html.Styled.Attributes.disabled model.isLoading ]
-                        [ text (model.isLoading ? "Logging in..." <| "Login") ]
+        ]
+        [ form [ onSubmit OnLoginSubmit ]
+            [ div
+                [ css
+                    [ displayFlex
+                    , flexDirection column
+                    , alignItems center
+                    , justifyContent spaceBetween
+                    , width (px authFormWidth)
                     ]
                 ]
+                [ apiErrors model.errors
+                , registerSuccessText
+                , authLabel isError [ for "username" ] [ text "Username" ]
+                , authInput isError [ type_ "text", name "username", onInput OnUsernameChange ]
+                , authLabel isError [ for "password" ] [ text "Password" ]
+                , authInput isError [ type_ "password", name "password", onInput OnPasswordChange ]
+                , authLabel isError
+                    [ css [ marginBottom (px authInputMarginBottom) ] ]
+                    [ input
+                        [ type_ "checkbox"
+                        , name "rememberMe"
+                        , id "rememberMe"
+                        , onCheck OnRememberMeChange
+                        , Html.Styled.Attributes.checked model.rememberMe
+                        ]
+                        []
+                    , label [ for "rememberMe", css [ marginLeft (px 8) ] ] [ text "Remember me" ]
+                    ]
+                , button
+                    [ type_ "submit", Html.Styled.Attributes.disabled model.isLoading ]
+                    [ text
+                        (if model.isLoading then
+                            "Logging in..."
+
+                         else
+                            "Login"
+                        )
+                    ]
+                ]
             ]
+        ]
 
 
 type ExternalMsg
@@ -120,18 +126,18 @@ update msg model =
                         _ ->
                             [ "Could not login" ]
             in
-                ( ( { model | errors = errorMessages, isLoading = False }, Cmd.none ), NoOp )
+            ( ( { model | errors = errorMessages, isLoading = False }, Cmd.none ), NoOp )
 
         OnLoginCompleted (Ok sessionUser) ->
             let
                 encodedSession =
                     AccessToken.encode (Just { sessionUser | rememberMe = model.rememberMe })
             in
-                ( ( { model | errors = [], isLoading = False }
-                  , Cmd.batch [ Ports.storeSession encodedSession, Route.modifyUrl PostsRoute ]
-                  )
-                , SetSession sessionUser
-                )
+            ( ( { model | errors = [], isLoading = False }
+              , Cmd.batch [ Ports.storeSession encodedSession, Route.modifyUrl PostsRoute ]
+              )
+            , SetSession sessionUser
+            )
 
 
 authLabel : Bool -> List (Attribute msg) -> List (Html msg) -> Html msg
@@ -166,4 +172,8 @@ authInput isError attributes =
 
 isErrorColor : Bool -> Color
 isErrorColor isError =
-    isError ? dangerColor <| defaultTextColor
+    if isError then
+        dangerColor
+
+    else
+        defaultTextColor

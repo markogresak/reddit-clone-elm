@@ -1,8 +1,11 @@
 module Model exposing (..)
 
-import Date exposing (Date)
-import RemoteData exposing (WebData)
 import Http
+import Time
+import Browser.Navigation as Nav
+import RemoteData exposing (WebData)
+import Browser exposing (UrlRequest)
+import Url
 
 
 type alias ApiBase =
@@ -53,15 +56,16 @@ type alias CommentFormModel =
     , isLoading : Bool
     , apiBase : ApiBase
     , session : Maybe Session
-    , now : Maybe Date
+    , now : Maybe Time.Posix
     , comment : Comment
     }
 
 
 type alias Model =
-    { route : Route
+    { key : Nav.Key
+    , route : Route
     , apiBase : ApiBase
-    , now : Maybe Date
+    , now : Maybe Time.Posix
     , posts : WebData (List Post)
     , currentPost : WebData Post
     , currentPostCommentModels : List CommentFormModel
@@ -103,7 +107,7 @@ type alias Post =
     , commentCount : Int
     , rating : Int
     , userRating : Int
-    , submittedAt : Date
+    , submittedAt : Time.Posix
     , user : User
     , comments : List Comment
     }
@@ -124,7 +128,7 @@ type alias CommentId =
 type alias Comment =
     { id : CommentId
     , text : String
-    , submittedAt : Date
+    , submittedAt : Time.Posix
     , rating : Int
     , postId : PostId
     , parentCommentId : Maybe CommentId
@@ -178,9 +182,10 @@ type Msg
     | OnFetchPosts (WebData (List Post))
     | OnFetchCurrentPost (WebData Post)
     | OnFetchUserPage (WebData UserPage)
-    | OnLocationChange Route
+    | OnLinkClick UrlRequest
+    | OnLocationChange Url.Url
     | SetSession (Maybe Session)
-    | SetCurrentTime (Maybe Date)
+    | SetCurrentTime (Maybe Time.Posix)
     | OnRate RatingType VoteId Bool Int
     | OnRateCompleted (Result Http.Error Rating)
     | OnLoginMsg LoginMsg

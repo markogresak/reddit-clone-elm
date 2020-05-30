@@ -1,4 +1,4 @@
-port module Util.Ports exposing (onSessionChange, storeSession, confirm, onConfirm)
+port module Util.Ports exposing (confirm, onConfirm, onSessionChange, storeSession)
 
 import Json.Encode exposing (Value)
 

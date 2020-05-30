@@ -3,13 +3,13 @@ module Page.User exposing (view)
 import Css exposing (..)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css)
-import StyleVariables exposing (..)
 import Model exposing (..)
-import Route exposing (..)
-import RemoteData exposing (WebData)
 import Page.Posts exposing (postItemList)
-import Views.LinkTo exposing (linkTo)
+import RemoteData exposing (WebData)
+import Route exposing (..)
+import StyleVariables exposing (..)
 import Views.CommentItem as CommentItem
+import Views.LinkTo exposing (linkTo)
 
 
 view : UserTabType -> Model -> WebData UserPage -> Html Msg
@@ -47,26 +47,26 @@ pageView tabType model userPage =
                         allCommentModels =
                             List.map (CommentItem.initialModel model) userPage.comments
                     in
-                        List.map (CommentItem.view allCommentModels False True True) allCommentModels
+                    List.map (CommentItem.view allCommentModels False True True) allCommentModels
 
                 UnknownTab ->
                     [ text "Invalid tab name" ]
     in
-        div
-            [ css
-                [ maxWidth (px contentWidth)
-                , margin2 (px 0) auto
-                , padding (px postsListSpacing)
-                ]
+    div
+        [ css
+            [ maxWidth (px contentWidth)
+            , margin2 (px 0) auto
+            , padding (px postsListSpacing)
             ]
-            (List.concat
-                [ [ h1 [] [ text ("User " ++ userPage.username) ]
-                  , div [ css [ marginBottom (px 20) ] ]
-                        [ tabButton userPage.id PostsTab "Posts"
-                        , tabButton userPage.id CommentsTab "Comments"
-                        ]
-                  , hr [] []
-                  ]
-                , tabContent
-                ]
-            )
+        ]
+        (List.concat
+            [ [ h1 [] [ text ("User " ++ userPage.username) ]
+              , div [ css [ marginBottom (px 20) ] ]
+                    [ tabButton userPage.id PostsTab "Posts"
+                    , tabButton userPage.id CommentsTab "Comments"
+                    ]
+              , hr [] []
+              ]
+            , tabContent
+            ]
+        )

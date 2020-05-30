@@ -1,31 +1,28 @@
 module Main exposing (..)
 
-import Css exposing (fontFamily, sansSerif, textDecoration, none, underline, color)
-import Css.Foreign exposing (global, typeSelector, selector)
-import StyleVariables exposing (..)
+import Css exposing (color, fontFamily, none, sansSerif, textDecoration, underline)
+import Css.Foreign exposing (global, selector, typeSelector)
 import Html.Styled exposing (..)
-import Navigation exposing (Location)
-import Route
-import Model exposing (..)
-import Json.Decode as Decode exposing (Value)
-import RemoteData exposing (WebData)
-import Util.AccessToken exposing (localSessionDecoder)
-import Util.Ports as Ports
-import Date exposing (Date)
-import Ternary exposing ((?))
-import List.Extra
-import Task
 import Http
+import Json.Decode as Decode exposing (Value)
+import List.Extra
+import Model exposing (..)
+import Page.Login as Login
+import Page.NewPost as NewPost
+import Page.NotFound as NotFound
+import Page.Posts as Posts
+import Page.Register as Register
+import Page.User as User
+import RemoteData exposing (WebData)
 import Request.Post as Post
 import Request.User
-import Views.Menu as Menu
+import Route
+import StyleVariables exposing (..)
+import Task
+import Util.AccessToken exposing (localSessionDecoder)
+import Util.Ports as Ports
 import Views.CommentItem as CommentItem
-import Page.NotFound as NotFound
-import Page.Login as Login
-import Page.Register as Register
-import Page.Posts as Posts
-import Page.NewPost as NewPost
-import Page.User as User
+import Views.Menu as Menu
 
 
 decodeSession : Value -> Maybe Session
@@ -36,11 +33,19 @@ decodeSession json =
         |> Maybe.andThen (Decode.decodeString localSessionDecoder >> Result.toMaybe)
 
 
-init : Value -> Location -> ( Model, Cmd Msg )
-init value location =
+-- init : Value -> Url.Url -> ( Model, Cmd Msg )
+-- init value location =
+
+init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
+init flags url key =
     let
+
         apiBase =
-            (location.hostname == "localhost") ? "http://localhost:4000/api" <| "https://reddit-eu.herokuapp.com/api"
+            if location.hostname == "localhost" then
+                "http://localhost:4000/api"
+
+            else
+                "https://reddit-eu.herokuapp.com/api"
 
         currentRoute =
             Route.parseLocation location
@@ -56,20 +61,21 @@ init value location =
                 _ ->
                     UnknownPost
     in
-        initLocationState
-            currentRoute
-            { route = currentRoute
-            , apiBase = apiBase
-            , now = Nothing
-            , posts = RemoteData.Loading
-            , currentPost = RemoteData.Loading
-            , currentPostCommentModels = []
-            , sessionUser = sessionUser
-            , loginData = (Login.initialModel apiBase)
-            , registerData = (Register.initialModel apiBase)
-            , newPostData = (NewPost.initialModel apiBase sessionUser newPostType)
-            , userPage = RemoteData.Loading
-            }
+    initLocationState
+        currentRoute
+        { key = key,
+            route = currentRoute
+        , apiBase = apiBase
+        , now = Nothing
+        , posts = RemoteData.Loading
+        , currentPost = RemoteData.Loading
+        , currentPostCommentModels = []
+        , sessionUser = sessionUser
+        , loginData = Login.initialModel apiBase
+        , registerData = Register.initialModel apiBase
+        , newPostData = NewPost.initialModel apiBase sessionUser newPostType
+        , userPage = RemoteData.Loading
+        }
 
 
 getCurrentDate : Cmd Msg
@@ -93,16 +99,16 @@ initLocationState route model =
                         postType =
                             Route.stringToPostType postTypeString
                     in
-                        case postType of
-                            UnknownPost ->
-                                ( model, Route.modifyUrl NotFoundRoute )
+                    case postType of
+                        UnknownPost ->
+                            ( model, Route.modifyUrl model.key NotFoundRoute )
 
-                            _ ->
-                                let
-                                    initialNewPostData =
-                                        NewPost.initialModel model.apiBase model.sessionUser postType
-                                in
-                                    ( { model | newPostData = initialNewPostData }, Cmd.none )
+                        _ ->
+                            let
+                                initialNewPostData =
+                                    NewPost.initialModel model.apiBase model.sessionUser postType
+                            in
+                            ( { model | newPostData = initialNewPostData }, Cmd.none )
 
                 UserRoute userId tabType ->
                     let
@@ -112,17 +118,21 @@ initLocationState route model =
                         cmd =
                             case model.userPage of
                                 RemoteData.Success userPage ->
-                                    (userPage.id == userId) ? Cmd.none <| requestCmd
+                                    if userPage.id == userId then
+                                        Cmd.none
+
+                                    else
+                                        requestCmd
 
                                 _ ->
                                     requestCmd
                     in
-                        ( model, cmd )
+                    ( model, cmd )
 
                 LoginRoute ->
                     case model.sessionUser of
                         Just sessionUser ->
-                            ( model, Route.modifyUrl PostsRoute )
+                            ( model, Route.modifyUrl model.key PostsRoute )
 
                         Nothing ->
                             ( model, Cmd.none )
@@ -138,12 +148,20 @@ initLocationState route model =
                 NotFoundRoute ->
                     ( model, Cmd.none )
     in
-        ( nextModel, Cmd.batch [ cmd, getCurrentDate ] )
+    ( nextModel, Cmd.batch [ cmd, getCurrentDate ] )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        OnLinkClick urlRequest ->
+            case urlRequest of
+                Browser.Internal url ->
+                    ( model, Nav.pushUrl model.key (Url.toString url) )
+
+                Browser.External href ->
+                    ( model, Nav.load href )
+
         OnLocationChange route ->
             let
                 updatedModel =
@@ -161,7 +179,7 @@ update msg model =
                             -- Reset registerSuccess state
                             { updatedModel | loginData = { loginData | registerSuccess = False } }
             in
-                initLocationState route newModel
+            initLocationState route newModel
 
         NavigateTo route ->
             ( model, Navigation.newUrl route )
@@ -184,12 +202,12 @@ update msg model =
                                 Nothing ->
                                     []
                     in
-                        ( { model
-                            | currentPost = response
-                            , currentPostCommentModels = List.map (CommentItem.initialModel model) (newComment ++ currentPost.comments)
-                          }
-                        , getCurrentDate
-                        )
+                    ( { model
+                        | currentPost = response
+                        , currentPostCommentModels = List.map (CommentItem.initialModel model) (newComment ++ currentPost.comments)
+                      }
+                    , getCurrentDate
+                    )
 
                 _ ->
                     ( { model | currentPost = response }, Cmd.none )
@@ -198,11 +216,12 @@ update msg model =
             let
                 cmd =
                     if model.sessionUser /= Nothing && sessionUser == Nothing then
-                        Route.modifyUrl PostsRoute
+                        Route.modifyUrl model.key PostsRoute
+
                     else
                         Cmd.none
             in
-                ( { model | sessionUser = sessionUser }, cmd )
+            ( { model | sessionUser = sessionUser }, cmd )
 
         OnLoginMsg subMsg ->
             let
@@ -217,7 +236,7 @@ update msg model =
                         Login.SetSession sessionUser ->
                             { model | sessionUser = Just sessionUser }
             in
-                ( { newModel | loginData = loginModel }, Cmd.map OnLoginMsg cmd )
+            ( { newModel | loginData = loginModel }, Cmd.map OnLoginMsg cmd )
 
         Model.OnRegisterMsg subMsg ->
             let
@@ -230,40 +249,60 @@ update msg model =
                 loginData =
                     model.loginData
             in
-                case msgFromPage of
-                    Register.OnRegisterSuccess ->
-                        update (NavigateTo (Route.routeToString LoginRoute)) { newModel | loginData = { loginData | registerSuccess = True } }
+            case msgFromPage of
+                Register.OnRegisterSuccess ->
+                    update (NavigateTo (Route.routeToString LoginRoute)) { newModel | loginData = { loginData | registerSuccess = True } }
 
-                    _ ->
-                        ( newModel, Cmd.map OnRegisterMsg cmd )
+                _ ->
+                    ( newModel, Cmd.map OnRegisterMsg cmd )
 
         OnNewPostMsg subMsg ->
             let
                 ( ( newPostModel, cmd ), msgFromPage ) =
                     NewPost.update subMsg model.newPostData
             in
-                ( { model | newPostData = newPostModel }, Cmd.map OnNewPostMsg cmd )
+            ( { model | newPostData = newPostModel }, Cmd.map OnNewPostMsg cmd )
 
         OnCommentFormMsg id subMsg ->
-            case (List.Extra.find (\m -> m.comment.id == id) model.currentPostCommentModels) of
+            case List.Extra.find (\m -> m.comment.id == id) model.currentPostCommentModels of
                 Just commentFormModel ->
                     let
                         ( ( newCommentFormModel, cmd ), msgFromPage ) =
                             CommentItem.update subMsg commentFormModel
 
                         updatedModel =
-                            { model | currentPostCommentModels = List.map (\m -> (m.comment.id == id) ? newCommentFormModel <| m) model.currentPostCommentModels }
+                            { model
+                                | currentPostCommentModels =
+                                    List.map
+                                        (\m ->
+                                            if m.comment.id == id then
+                                                newCommentFormModel
+
+                                            else
+                                                m
+                                        )
+                                        model.currentPostCommentModels
+                            }
 
                         newModel =
                             case msgFromPage of
                                 CommentItem.OnAddNewComment newComment ->
                                     { updatedModel
-                                        | currentPostCommentModels = [ (CommentItem.initialModel updatedModel newComment) ] ++ updatedModel.currentPostCommentModels
+                                        | currentPostCommentModels = [ CommentItem.initialModel updatedModel newComment ] ++ updatedModel.currentPostCommentModels
                                     }
 
                                 CommentItem.OnEditComment updatedComment ->
                                     { updatedModel
-                                        | currentPostCommentModels = List.map (\m -> (m.comment.id == updatedComment.id) ? (CommentItem.initialModel updatedModel updatedComment) <| m) updatedModel.currentPostCommentModels
+                                        | currentPostCommentModels =
+                                            List.map
+                                                (\m ->
+                                                    if m.comment.id == updatedComment.id then
+                                                        CommentItem.initialModel updatedModel updatedComment
+
+                                                    else
+                                                        m
+                                                )
+                                                updatedModel.currentPostCommentModels
                                     }
 
                                 CommentItem.OnDeleteComment id ->
@@ -274,15 +313,15 @@ update msg model =
                                 _ ->
                                     updatedModel
                     in
-                        case msgFromPage of
-                            CommentItem.CommentFormNavigateTo route ->
-                                update (NavigateTo route) newModel
+                    case msgFromPage of
+                        CommentItem.CommentFormNavigateTo route ->
+                            update (NavigateTo route) newModel
 
-                            CommentItem.CommentFormOnRate ratingType id isDownButton userRating ->
-                                update (OnRate ratingType id isDownButton userRating) newModel
+                        CommentItem.CommentFormOnRate ratingType id isDownButton userRating ->
+                            update (OnRate ratingType id isDownButton userRating) newModel
 
-                            _ ->
-                                ( newModel, Cmd.map (OnCommentFormMsg id) cmd )
+                        _ ->
+                            ( newModel, Cmd.map (OnCommentFormMsg id) cmd )
 
                 Nothing ->
                     ( model, Cmd.map (OnCommentFormMsg id) Cmd.none )
@@ -300,17 +339,19 @@ update msg model =
                 rating =
                     if isDownButton && userRating /= -1 then
                         -1
-                    else if (not isDownButton) && userRating /= 1 then
+
+                    else if not isDownButton && userRating /= 1 then
                         1
+
                     else
                         0
             in
-                case rating of
-                    0 ->
-                        ( model, Cmd.none )
+            case rating of
+                0 ->
+                    ( model, Cmd.none )
 
-                    _ ->
-                        ( model, Http.send OnRateCompleted (Post.rate model.apiBase model.sessionUser id rating ratingType) )
+                _ ->
+                    ( model, Http.send OnRateCompleted (Post.rate model.apiBase model.sessionUser id rating ratingType) )
 
         OnRateCompleted (Ok rating) ->
             let
@@ -337,7 +378,7 @@ update msg model =
                                 | currentPostCommentModels = List.map (\m -> { m | comment = Post.updateCommentRating rating m.comment }) model.currentPostCommentModels
                             }
             in
-                ( nextModel, Cmd.none )
+            ( nextModel, Cmd.none )
 
         OnRateCompleted (Err _) ->
             ( model, Cmd.none )
@@ -382,13 +423,13 @@ page model =
                 postType =
                     Route.stringToPostType postTypeString
             in
-                case postType of
-                    UnknownPost ->
-                        NotFound.view
+            case postType of
+                UnknownPost ->
+                    NotFound.view
 
-                    _ ->
-                        NewPost.view model.newPostData
-                            |> Html.Styled.map OnNewPostMsg
+                _ ->
+                    NewPost.view model.newPostData
+                        |> Html.Styled.map OnNewPostMsg
 
         UserRoute id tabType ->
             User.view (Route.stringToUserTabType tabType) model model.userPage
@@ -428,9 +469,11 @@ onConfirm =
 
 main : Program Value Model Msg
 main =
-    Navigation.programWithFlags (Route.parseLocation >> OnLocationChange)
+    Browser.application
         { init = init
         , view = view >> toUnstyled
         , update = update
         , subscriptions = subscriptions
+        , onUrlChange = (Route.parseLocation >> OnLocationChange)
+        , onUrlRequest = OnLinkClick
         }

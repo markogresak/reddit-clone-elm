@@ -4,7 +4,6 @@ import Css exposing (..)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (css)
 import StyleVariables exposing (..)
-import Ternary exposing ((?:))
 
 
 apiErrors : List String -> Html msg
@@ -13,7 +12,7 @@ apiErrors errors =
         errorContent =
             case List.length errors of
                 1 ->
-                    span [] [ text ("Error: " ++ (List.head errors ?: "")) ]
+                    span [] [ text ("Error: " ++ Maybe.withDefault "" (List.head errors)) ]
 
                 _ ->
                     div []
@@ -36,4 +35,4 @@ apiErrors errors =
                         [ errorContent
                         ]
     in
-        wrapperElement
+    wrapperElement
