@@ -1,0 +1,42 @@
+{
+  "author": "Marko Gresak <marko@gresak.io> (https://gresak.io/)",
+  "name": "reddit-clone-elm",
+  "description": "Reddit clone implementation in Elm",
+  "keywords": [],
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "main": "src/index.js",
+  "scripts": {
+    "postinstall": "elm-package install -y",
+    "build": "rm -rf ./build && NODE_ENV=production webpack",
+    "preview": "NODE_ENV=production yarn start",
+    "start": "webpack-dev-server --port 8000",
+    "lint": "elm-format --validate src",
+    "lint:fix": "elm-format --yes src",
+    "hook:add": "prepush install",
+    "hook:remove": "prepush remove"
+  },
+  "dependencies": {
+    "css-loader": "^0.26.1",
+    "elm": "^0.18.0",
+    "elm-format": "^0.6.1-alpha",
+    "elm-webpack-loader": "^4.2.0",
+    "file-loader": "^0.10.0",
+    "html-webpack-plugin": "^2.30.1",
+    "normalize.css": "^7.0.0",
+    "prepush": "^3.1.11",
+    "style-loader": "^0.13.1",
+    "url-loader": "^0.5.7",
+    "webpack": "^3.10.0",
+    "webpack-dev-server": "^2.10.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/markogresak/reddit-clone-elm.git"
+  },
+  "homepage": "https://github.com/markogresak/reddit-clone-elm#readme",
+  "prepush": [
+    "yarn run lint"
+  ]
+}
